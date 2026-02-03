@@ -22,6 +22,10 @@ $u = requireLogin();
     <li><a href="diary_new.php">日誌を追加</a></li>
     <li><a href="diary_list.php">日誌一覧</a></li>
 
+    <li><a href="shipment_list.php">出荷一覧</a></li>
+    <li><a href="shipment_new.php">出荷入力</a></li>
+
+
     <li><a href="shipment_new.php">出荷実績を追加</a></li>
     <li><a href="shipment_list.php">出荷実績一覧</a></li>
 
@@ -36,6 +40,7 @@ $u = requireLogin();
 
     <?php if (isAdmin($u)): ?>
       <li><a href="summary.php">集計（管理者）</a></li>
+      <li><a href="shipment_summary.php">出荷集計（管理者）</a></li>
       <li><a href="admin_user_new.php">研修生ユーザー追加（管理者）</a></li>
       <li><a href="admin_user_list.php">ユーザー一覧（管理者）</a></li>
     <?php endif; ?>
