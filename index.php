@@ -33,6 +33,8 @@ $u = requireLogin();
 
     <?php if (isAdmin($u)): ?>
       <li><a href="summary.php">集計（管理者）</a></li>
+      <li><a href="admin_user_new.php">研修生ユーザー追加（管理者）</a></li>
+      <li><a href="admin_user_list.php">ユーザー一覧（管理者）</a></li>
     <?php endif; ?>
 
     <li><a href="logout.php">ログアウト</a></li>
