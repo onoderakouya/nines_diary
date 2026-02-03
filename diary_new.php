@@ -6,58 +6,45 @@ $pdo = db();
 
 $fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
+$tasks  = $pdo->query("SELECT id,name FROM tasks ORDER BY id")->fetchAll();
 
-// 作業内容（標準リスト）
-$workOptions = [
-  '育苗','定植','潅水','整枝','誘引','収穫','農薬散布','耕作','追肥','芽かき','葉かき',
-  '摘果','摘花','畝立て','マルチ張り','受粉処理','抜根','圃場の片付け','その他'
-];
-
-// かんたん天気：手入力 + 温度（自動化は後でAPI化）
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date = $_POST['date'] ?? '';
   $field_id = (int)($_POST['field_id'] ?? 0);
   $plot = trim((string)($_POST['plot'] ?? '')); // 区画（任意）
   $crop_id  = (int)($_POST['crop_id'] ?? 0);
-
-  $work_main = trim((string)($_POST['work_main'] ?? ''));
-  $work_other = trim((string)($_POST['work_other'] ?? ''));
+  $task_id  = (int)($_POST['task_id'] ?? 0);
 
   $minutes = (int)($_POST['minutes'] ?? 0);
-  $weather = trim((string)($_POST['weather'] ?? ''));
+
+  // 既存実装に寄せる：weather_code を使ってるならここも合わせる
+  // いったん自由入力の "weather" も残したい場合はDB側の列に合わせてください。
+  $weather_code = trim((string)($_POST['weather_code'] ?? '')); // 任意
   $temp_c  = $_POST['temp_c'] === '' ? null : (float)$_POST['temp_c'];
   $memo    = trim((string)($_POST['memo'] ?? ''));
 
-  // 作業内容の確定（その他なら自由入力必須）
-  if ($work_main === 'その他') {
-    $work_content = $work_other;
-  } else {
-    $work_content = $work_main;
-  }
-
-  if (!$date || !$field_id || !$crop_id || $work_main==='' || $minutes <= 0 || $work_content==='') {
-    $err = '必須項目を入力してください（作業時間は1分以上、作業内容は必須）';
-  } elseif (!in_array($work_main, $workOptions, true)) {
-    $err = '作業内容が不正です。';
+  if (!$date || !$field_id || !$crop_id || !$task_id || $minutes <= 0) {
+    $err = '必須項目を入力してください（作業時間は1分以上、作業は必須）';
   } else {
     $stmt = $pdo->prepare("INSERT INTO diary_entries
-      (user_id,date,field_id,plot,crop_id,work_content,minutes,weather,temp_c,memo,created_at)
-      VALUES (:user_id,:date,:field_id,:plot,:crop_id,:work_content,:minutes,:weather,:temp_c,:memo,:created_at)
+      (user_id,date,field_id,plot,crop_id,task_id,minutes,weather_code,temp_c,memo,created_at)
+      VALUES (:user_id,:date,:field_id,:plot,:crop_id,:task_id,:minutes,:weather_code,:temp_c,:memo,:created_at)
     ");
     $stmt->execute([
       ':user_id'=>$u['id'],
       ':date'=>$date,
       ':field_id'=>$field_id,
-      ':plot' => ($plot !== '' ? $plot : null),
+      ':plot'=>($plot !== '' ? $plot : null),
       ':crop_id'=>$crop_id,
-      ':work_content'=>$work_content,
+      ':task_id'=>$task_id,
       ':minutes'=>$minutes,
-      ':weather'=>$weather ?: null,
+      ':weather_code'=>($weather_code !== '' ? $weather_code : null),
       ':temp_c'=>$temp_c,
-      ':memo'=>$memo ?: null,
+      ':memo'=>($memo !== '' ? $memo : null),
       ':created_at'=>date('c'),
     ]);
+
     header('Location: diary_list.php');
     exit;
   }
@@ -76,20 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .row > div{flex:1;min-width:180px}
     .hint{color:#666;font-size:12px}
   </style>
-  <script>
-    function toggleOther(){
-      const sel = document.getElementById('work_main');
-      const box = document.getElementById('work_other_box');
-      if(sel.value === 'その他'){
-        box.style.display = 'block';
-        document.getElementById('work_other').required = true;
-      }else{
-        box.style.display = 'none';
-        document.getElementById('work_other').required = false;
-      }
-    }
-    window.addEventListener('DOMContentLoaded', toggleOther);
-  </script>
 </head>
 <body>
   <h1>日誌追加</h1>
@@ -108,59 +81,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
         <?php endforeach; ?>
       </select>
-      <div class="hint">※区画は次のアップデートで追加できます（例：区画1）</div>
+      <div class="hint">※区画は自由入力（例：区画1）</div>
     </label>
 
     <label>区画（任意）<br>
-    <input name="plot" placeholder="例：区画1 / 1 / 東側 など">
-     <div class="hint">※自由入力（集計を揃えるなら「区画1, 区画2…」のように統一がおすすめ）</div>
+      <input name="plot" placeholder="例：区画1 / 1 / 東側 など" value="<?=e($_POST['plot'] ?? '')?>">
+      <div class="hint">※集計を揃えるなら「区画1, 区画2…」のように統一がおすすめ</div>
     </label>
-
 
     <label>品目*<br>
       <select name="crop_id" required>
         <option value="">選択</option>
         <?php foreach ($crops as $c): ?>
-          <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
+          <option value="<?= (int)$c['id'] ?>" <?= ((int)($_POST['crop_id'] ?? 0) === (int)$c['id'])?'selected':'' ?>>
+            <?= e($c['name']) ?>
+          </option>
         <?php endforeach; ?>
       </select>
     </label>
 
-    <label>作業内容*（標準）<br>
-      <select id="work_main" name="work_main" required onchange="toggleOther()">
+    <label>作業*（標準）<br>
+      <select name="task_id" required>
         <option value="">選択</option>
-        <?php foreach ($workOptions as $w): ?>
-          <option value="<?=e($w)?>"><?=e($w)?></option>
+        <?php foreach ($tasks as $t): ?>
+          <option value="<?= (int)$t['id'] ?>" <?= ((int)($_POST['task_id'] ?? 0) === (int)$t['id'])?'selected':'' ?>>
+            <?= e($t['name']) ?>
+          </option>
         <?php endforeach; ?>
       </select>
     </label>
-
-    <div id="work_other_box" style="display:none">
-      <label>作業内容（その他の自由入力）*<br>
-        <input id="work_other" name="work_other" placeholder="例：支柱の修繕、ハウス補修 など">
-      </label>
-    </div>
 
     <div class="row">
       <div>
         <label>作業時間（分）*<br>
-          <input type="number" name="minutes" min="1" step="1" required placeholder="例：45">
+          <input type="number" name="minutes" min="1" step="1" required
+                 placeholder="例：45" value="<?=e((string)($_POST['minutes'] ?? ''))?>">
         </label>
       </div>
       <div>
-        <label>天気（任意）<br>
-          <input name="weather" placeholder="例：晴れ/曇り/雨">
+        <label>天気コード（任意）<br>
+          <input name="weather_code" placeholder="例：晴れ/曇り/雨" value="<?=e((string)($_POST['weather_code'] ?? ''))?>">
         </label>
       </div>
     </div>
 
-    <label>気温（℃）（任意）<br>
-      <input type="number" name="temp_c" step="0.1" placeholder="例：23.5">
-      <div class="hint">※ここも後で自動入力できます（API連携）</div>
+    <label>気温(max)（℃）（任意）<br>
+      <input type="number" name="temp_c" step="0.1" placeholder="例：23.5" value="<?=e((string)($_POST['temp_c'] ?? ''))?>">
     </label>
 
     <label>メモ（任意）<br>
-      <textarea name="memo" rows="4" placeholder="病害虫の気配、気づき、資材の残量など"></textarea>
+      <textarea name="memo" rows="4" placeholder="病害虫の気配、気づき、資材の残量など"><?=e((string)($_POST['memo'] ?? ''))?></textarea>
     </label>
 
     <button>保存</button>
