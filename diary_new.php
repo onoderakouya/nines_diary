@@ -18,6 +18,7 @@ $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date = $_POST['date'] ?? '';
   $field_id = (int)($_POST['field_id'] ?? 0);
+  $plot = trim((string)($_POST['plot'] ?? '')); // 区画（任意）
   $crop_id  = (int)($_POST['crop_id'] ?? 0);
 
   $work_main = trim((string)($_POST['work_main'] ?? ''));
@@ -41,13 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $err = '作業内容が不正です。';
   } else {
     $stmt = $pdo->prepare("INSERT INTO diary_entries
-      (user_id,date,field_id,crop_id,work_content,minutes,weather,temp_c,memo,created_at)
-      VALUES (:user_id,:date,:field_id,:crop_id,:work_content,:minutes,:weather,:temp_c,:memo,:created_at)
+      (user_id,date,field_id,plot,crop_id,work_content,minutes,weather,temp_c,memo,created_at)
+      VALUES (:user_id,:date,:field_id,:plot,:crop_id,:work_content,:minutes,:weather,:temp_c,:memo,:created_at)
     ");
     $stmt->execute([
       ':user_id'=>$u['id'],
       ':date'=>$date,
       ':field_id'=>$field_id,
+      ':plot' => ($plot !== '' ? $plot : null),
       ':crop_id'=>$crop_id,
       ':work_content'=>$work_content,
       ':minutes'=>$minutes,
@@ -108,6 +110,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </select>
       <div class="hint">※区画は次のアップデートで追加できます（例：区画1）</div>
     </label>
+
+    <label>区画（任意）<br>
+    <input name="plot" placeholder="例：区画1 / 1 / 東側 など">
+     <div class="hint">※自由入力（集計を揃えるなら「区画1, 区画2…」のように統一がおすすめ）</div>
+    </label>
+
 
     <label>品目*<br>
       <select name="crop_id" required>
