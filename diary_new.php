@@ -8,6 +8,30 @@ $fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 $tasks  = $pdo->query("SELECT id,name FROM tasks ORDER BY id")->fetchAll();
 
+/**
+ * 既存の区画候補を取り出す（ユーザー本人の入力から集計）
+ * field_id 指定時はそのハウスのものだけ
+ */
+$fieldForSuggest = (int)($_GET['field_id'] ?? 0);
+$suggestParams = [':uid' => $u['id']];
+$suggestWhere = " WHERE user_id = :uid AND plot IS NOT NULL AND plot <> '' ";
+if ($fieldForSuggest) {
+  $suggestWhere .= " AND field_id = :field_id ";
+  $suggestParams[':field_id'] = $fieldForSuggest;
+}
+
+$suggestSql = "
+  SELECT plot, COUNT(*) as cnt
+  FROM diary_entries
+  {$suggestWhere}
+  GROUP BY plot
+  ORDER BY cnt DESC, plot ASC
+  LIMIT 20
+";
+$suggestStmt = $pdo->prepare($suggestSql);
+$suggestStmt->execute($suggestParams);
+$plotSuggestions = $suggestStmt->fetchAll();
+
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date = $_POST['date'] ?? '';
@@ -17,12 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $task_id  = (int)($_POST['task_id'] ?? 0);
 
   $minutes = (int)($_POST['minutes'] ?? 0);
-
-  // 既存実装に寄せる：weather_code を使ってるならここも合わせる
-  // いったん自由入力の "weather" も残したい場合はDB側の列に合わせてください。
   $weather_code = trim((string)($_POST['weather_code'] ?? '')); // 任意
-  $temp_c  = $_POST['temp_c'] === '' ? null : (float)$_POST['temp_c'];
+  $temp_c  = ($_POST['temp_c'] ?? '') === '' ? null : (float)$_POST['temp_c'];
   $memo    = trim((string)($_POST['memo'] ?? ''));
+
+  // ★軽い正規化：全角スペース→半角、前後空白除去、連続空白を1つに
+  $plot = preg_replace('/\s+/u', ' ', str_replace('　', ' ', $plot));
+  $plot = trim((string)$plot);
 
   if (!$date || !$field_id || !$crop_id || !$task_id || $minutes <= 0) {
     $err = '必須項目を入力してください（作業時間は1分以上、作業は必須）';
@@ -63,6 +88,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .row > div{flex:1;min-width:180px}
     .hint{color:#666;font-size:12px}
   </style>
+  <script>
+    // 圃場を変えたら、区画候補をその圃場に寄せるために再読み込み（GETにfield_idを付ける）
+    function onFieldChange(sel){
+      const fieldId = sel.value || '';
+      const url = new URL(window.location.href);
+      if(fieldId){
+        url.searchParams.set('field_id', fieldId);
+      }else{
+        url.searchParams.delete('field_id');
+      }
+      window.location.href = url.toString();
+    }
+  </script>
 </head>
 <body>
   <h1>日誌追加</h1>
@@ -75,18 +113,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </label>
 
     <label>圃場*（ハウス）<br>
-      <select name="field_id" required>
+      <select name="field_id" required onchange="onFieldChange(this)">
         <option value="">選択</option>
         <?php foreach ($fields as $f): ?>
-          <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
+          <?php $fid = (int)$f['id']; ?>
+          <option value="<?= $fid ?>" <?= ($fieldForSuggest === $fid) ? 'selected' : '' ?>>
+            <?= e($f['label']) ?>
+          </option>
         <?php endforeach; ?>
       </select>
-      <div class="hint">※区画は自由入力（例：区画1）</div>
+      <div class="hint">圃場を選ぶと、その圃場で過去に使った区画候補が出ます</div>
     </label>
 
     <label>区画（任意）<br>
-      <input name="plot" placeholder="例：区画1 / 1 / 東側 など" value="<?=e($_POST['plot'] ?? '')?>">
-      <div class="hint">※集計を揃えるなら「区画1, 区画2…」のように統一がおすすめ</div>
+      <input name="plot"
+             list="plot_suggestions"
+             placeholder="例：区画1 / 東側 など"
+             value="<?=e((string)($_POST['plot'] ?? ''))?>">
+      <datalist id="plot_suggestions">
+        <?php foreach ($plotSuggestions as $ps): ?>
+          <option value="<?=e((string)$ps['plot'])?>"></option>
+        <?php endforeach; ?>
+      </datalist>
+      <div class="hint">※候補はあなたが過去に入力した区画から自動で出します（表記ゆれ防止）</div>
     </label>
 
     <label>品目*<br>
