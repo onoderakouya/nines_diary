@@ -5,137 +5,317 @@ require_once __DIR__ . '/auth.php';
 $admin = requireAdmin();
 $pdo = db();
 
-$from = $_GET['from'] ?? date('Y-m-01');
-$to   = $_GET['to'] ?? date('Y-m-d');
+/**
+ * 絞り込み条件
+ */
+$from  = trim((string)($_GET['from'] ?? ''));
+$to    = trim((string)($_GET['to'] ?? ''));
+$user  = (int)($_GET['user_id'] ?? 0);
+$field = (int)($_GET['field_id'] ?? 0);
+$crop  = (int)($_GET['crop_id'] ?? 0);
+$task  = (int)($_GET['task_id'] ?? 0);
 
-function q(PDO $pdo, string $sql, array $params): array {
+$where = " WHERE 1=1 ";
+$params = [];
+
+if ($from !== '') { $where .= " AND d.date >= :from "; $params[':from'] = $from; }
+if ($to   !== '') { $where .= " AND d.date <= :to ";   $params[':to']   = $to; }
+if ($user)  { $where .= " AND d.user_id = :uid ";   $params[':uid']   = $user; }
+if ($field) { $where .= " AND d.field_id = :field "; $params[':field'] = $field; }
+if ($crop)  { $where .= " AND d.crop_id = :crop ";   $params[':crop']  = $crop; }
+if ($task)  { $where .= " AND d.task_id = :task ";   $params[':task']  = $task; }
+
+// マスタ
+$users  = $pdo->query("SELECT id,name,email,role FROM users ORDER BY role DESC, name ASC")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
+$tasks  = $pdo->query("SELECT id,name FROM tasks ORDER BY id")->fetchAll();
+
+function fetchAllAssoc(PDO $pdo, string $sql, array $params): array {
   $st = $pdo->prepare($sql);
   $st->execute($params);
   return $st->fetchAll();
 }
 
-$params = [':from'=>$from, ':to'=>$to];
+/**
+ * 総計（合計分、件数）
+ */
+$total = fetchAllAssoc($pdo, "
+  SELECT
+    COUNT(*) as cnt,
+    COALESCE(SUM(d.minutes),0) as minutes_sum
+  FROM diary_entries d
+  {$where}
+", $params);
+$totalCnt = (int)($total[0]['cnt'] ?? 0);
+$totalMin = (int)($total[0]['minutes_sum'] ?? 0);
 
-// 1) 出荷実績 集計（品目×単位）
-$ship = q($pdo, "
-SELECT c.name AS crop, s.unit, SUM(s.quantity) AS total_qty
-FROM shipments s
-JOIN crops c ON c.id=s.crop_id
-WHERE s.date BETWEEN :from AND :to
-GROUP BY c.name, s.unit
-ORDER BY c.id, s.unit
+/**
+ * 作業別集計
+ */
+$byTask = fetchAllAssoc($pdo, "
+  SELECT
+    t.name as label,
+    COUNT(*) as cnt,
+    COALESCE(SUM(d.minutes),0) as minutes_sum
+  FROM diary_entries d
+  JOIN tasks t ON t.id = d.task_id
+  {$where}
+  GROUP BY d.task_id
+  ORDER BY minutes_sum DESC, cnt DESC, label ASC
 ", $params);
 
-// 2) 資材費 集計（合計＋品目別＋圃場別）
-$mat_total = q($pdo, "
-SELECT SUM(cost_yen) AS total_yen
-FROM materials
-WHERE date BETWEEN :from AND :to
+/**
+ * 品目別集計
+ */
+$byCrop = fetchAllAssoc($pdo, "
+  SELECT
+    c.name as label,
+    COUNT(*) as cnt,
+    COALESCE(SUM(d.minutes),0) as minutes_sum
+  FROM diary_entries d
+  JOIN crops c ON c.id = d.crop_id
+  {$where}
+  GROUP BY d.crop_id
+  ORDER BY minutes_sum DESC, cnt DESC, label ASC
 ", $params);
 
-$mat_by_crop = q($pdo, "
-SELECT COALESCE(c.name,'(未設定)') AS crop, SUM(m.cost_yen) AS total_yen
-FROM materials m
-LEFT JOIN crops c ON c.id=m.crop_id
-WHERE m.date BETWEEN :from AND :to
-GROUP BY crop
-ORDER BY total_yen DESC
+/**
+ * 圃場別集計
+ */
+$byField = fetchAllAssoc($pdo, "
+  SELECT
+    f.label as label,
+    COUNT(*) as cnt,
+    COALESCE(SUM(d.minutes),0) as minutes_sum
+  FROM diary_entries d
+  JOIN fields f ON f.id = d.field_id
+  {$where}
+  GROUP BY d.field_id
+  ORDER BY minutes_sum DESC, cnt DESC, label ASC
 ", $params);
 
-$mat_by_field = q($pdo, "
-SELECT COALESCE(f.label,'(未設定)') AS field, SUM(m.cost_yen) AS total_yen
-FROM materials m
-LEFT JOIN fields f ON f.id=m.field_id
-WHERE m.date BETWEEN :from AND :to
-GROUP BY field
-ORDER BY total_yen DESC
+/**
+ * 圃場×区画（plot）別（上位）
+ */
+$byFieldPlot = fetchAllAssoc($pdo, "
+  SELECT
+    f.label as field_label,
+    COALESCE(d.plot,'') as plot,
+    COUNT(*) as cnt,
+    COALESCE(SUM(d.minutes),0) as minutes_sum
+  FROM diary_entries d
+  JOIN fields f ON f.id = d.field_id
+  {$where}
+  GROUP BY d.field_id, d.plot
+  ORDER BY minutes_sum DESC, cnt DESC, field_label ASC, plot ASC
+  LIMIT 30
 ", $params);
 
-// 3) 病害虫（件数：品目×圃場、最新10件）
-$pest_count = q($pdo, "
-SELECT c.name AS crop, f.label AS field, COUNT(*) AS cnt
-FROM pests p
-JOIN crops c ON c.id=p.crop_id
-JOIN fields f ON f.id=p.field_id
-WHERE p.date BETWEEN :from AND :to
-GROUP BY c.name, f.label
-ORDER BY cnt DESC
+/**
+ * 研修生別集計（管理者含むが、必要ならWHEREでrole='trainee'に絞れます）
+ */
+$byUser = fetchAllAssoc($pdo, "
+  SELECT
+    u.name as label,
+    COUNT(*) as cnt,
+    COALESCE(SUM(d.minutes),0) as minutes_sum
+  FROM diary_entries d
+  JOIN users u ON u.id = d.user_id
+  {$where}
+  GROUP BY d.user_id
+  ORDER BY minutes_sum DESC, cnt DESC, label ASC
 ", $params);
 
-$pest_recent = q($pdo, "
-SELECT p.date, u.name AS user, c.name AS crop, f.label AS field, p.symptom_text
-FROM pests p
-JOIN users u ON u.id=p.user_id
-JOIN crops c ON c.id=p.crop_id
-JOIN fields f ON f.id=p.field_id
-WHERE p.date BETWEEN :from AND :to
-ORDER BY p.date DESC, p.id DESC
-LIMIT 10
-", $params);
-
-function unitLabel(string $u): string { return $u==='box' ? '箱' : 'kg'; }
+function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function mmToHM(int $minutes): string {
+  $h = intdiv($minutes, 60);
+  $m = $minutes % 60;
+  return sprintf('%d:%02d', $h, $m);
+}
 ?>
-<!doctype html><meta charset="utf-8">
-<title>集計（管理者）</title>
-<h1>集計（管理者）</h1>
-<p><a href="index.php">←ホーム</a></p>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>集計（管理者）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    table{border-collapse:collapse;width:100%;max-width:980px}
+    th,td{border:1px solid #ddd;padding:8px}
+    th{background:#f6f6f6;text-align:left}
+    .wrap{max-width:1040px}
+    .muted{color:#666;font-size:12px}
+    .cards{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 18px}
+    .card{border:1px solid #ddd;border-radius:8px;padding:10px;min-width:220px}
+    .big{font-size:20px;font-weight:700}
+    .section{margin:22px 0}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px}
+    @media (min-width: 900px){
+      .grid{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>集計（管理者）</h1>
+  <p><a href="index.php">←ホーム</a></p>
 
-<form method="get">
-  <label>From <input type="date" name="from" value="<?=e($from)?>"></label>
-  <label>To <input type="date" name="to" value="<?=e($to)?>"></label>
-  <button>表示</button>
-</form>
+  <form method="get" style="margin:10px 0 12px">
+    <label>From <input type="date" name="from" value="<?=h($from)?>"></label>
+    <label>To <input type="date" name="to" value="<?=h($to)?>"></label>
+    <br><br>
 
-<hr>
+    <select name="user_id">
+      <option value="0">ユーザー：すべて</option>
+      <?php foreach ($users as $uu): ?>
+        <option value="<?= (int)$uu['id'] ?>" <?= $user === (int)$uu['id'] ? 'selected' : '' ?>>
+          <?=h($uu['name'])?>（<?=h($uu['role'])?>）
+        </option>
+      <?php endforeach; ?>
+    </select>
 
-<h2>出荷実績（期間合計）</h2>
-<table border="1" cellpadding="6" style="border-collapse:collapse">
-  <tr><th>品目</th><th>単位</th><th>合計</th></tr>
-  <?php foreach ($ship as $r): ?>
-    <tr>
-      <td><?=e($r['crop'])?></td>
-      <td><?=e(unitLabel((string)$r['unit']))?></td>
-      <td><?=e((string)$r['total_qty'])?></td>
-    </tr>
-  <?php endforeach; ?>
-</table>
+    <select name="field_id">
+      <option value="0">圃場：すべて</option>
+      <?php foreach ($fields as $f): ?>
+        <option value="<?= (int)$f['id'] ?>" <?= $field === (int)$f['id'] ? 'selected' : '' ?>>
+          <?=h($f['label'])?>
+        </option>
+      <?php endforeach; ?>
+    </select>
 
-<h2>資材費（期間合計）</h2>
-<p><b>合計：</b> ¥<?=number_format((int)($mat_total[0]['total_yen'] ?? 0))?></p>
+    <select name="crop_id">
+      <option value="0">品目：すべて</option>
+      <?php foreach ($crops as $c): ?>
+        <option value="<?= (int)$c['id'] ?>" <?= $crop === (int)$c['id'] ? 'selected' : '' ?>>
+          <?=h($c['name'])?>
+        </option>
+      <?php endforeach; ?>
+    </select>
 
-<h3>資材費：品目別</h3>
-<table border="1" cellpadding="6" style="border-collapse:collapse">
-  <tr><th>品目</th><th>合計</th></tr>
-  <?php foreach ($mat_by_crop as $r): ?>
-    <tr><td><?=e($r['crop'])?></td><td>¥<?=number_format((int)$r['total_yen'])?></td></tr>
-  <?php endforeach; ?>
-</table>
+    <select name="task_id">
+      <option value="0">作業：すべて</option>
+      <?php foreach ($tasks as $t): ?>
+        <option value="<?= (int)$t['id'] ?>" <?= $task === (int)$t['id'] ? 'selected' : '' ?>>
+          <?=h($t['name'])?>
+        </option>
+      <?php endforeach; ?>
+    </select>
 
-<h3>資材費：圃場別</h3>
-<table border="1" cellpadding="6" style="border-collapse:collapse">
-  <tr><th>圃場</th><th>合計</th></tr>
-  <?php foreach ($mat_by_field as $r): ?>
-    <tr><td><?=e($r['field'])?></td><td>¥<?=number_format((int)$r['total_yen'])?></td></tr>
-  <?php endforeach; ?>
-</table>
+    <button>絞り込み</button>
+    <span class="muted">※最大200件制限なし（集計なので全件対象）</span>
+  </form>
 
-<h2>病害虫（件数）</h2>
-<table border="1" cellpadding="6" style="border-collapse:collapse">
-  <tr><th>品目</th><th>圃場</th><th>件数</th></tr>
-  <?php foreach ($pest_count as $r): ?>
-    <tr>
-      <td><?=e($r['crop'])?></td>
-      <td><?=e($r['field'])?></td>
-      <td><?=e((string)$r['cnt'])?></td>
-    </tr>
-  <?php endforeach; ?>
-</table>
-
-<h3>病害虫：最新10件（概要）</h3>
-<div style="color:#555">※詳細は各研修生の「病害虫一覧」にあります（本人だけ閲覧）。管理者はここで全体傾向だけ確認。</div>
-<?php foreach ($pest_recent as $r): ?>
-  <div style="padding:10px 0;border-bottom:1px solid #ddd">
-    <div><b><?=e($r['date'])?></b> / <?=e($r['user'])?> / <?=e($r['field'])?> / <?=e($r['crop'])?></div>
-    <div><?=nl2br(e(mb_strimwidth($r['symptom_text'], 0, 200, '…', 'UTF-8')))?></div>
+  <div class="cards">
+    <div class="card">
+      <div class="muted">対象件数</div>
+      <div class="big"><?= $totalCnt ?> 件</div>
+    </div>
+    <div class="card">
+      <div class="muted">合計作業時間</div>
+      <div class="big"><?= mmToHM($totalMin) ?>（<?= $totalMin ?>分）</div>
+    </div>
+    <div class="card">
+      <div class="muted">平均</div>
+      <div class="big">
+        <?php
+          $avg = $totalCnt ? (int)round($totalMin / $totalCnt) : 0;
+          echo mmToHM($avg) . "（{$avg}分/件）";
+        ?>
+      </div>
+    </div>
   </div>
-<?php endforeach; ?>
+
+  <div class="grid">
+
+    <div class="section">
+      <h2>作業別（tasks）</h2>
+      <table>
+        <tr><th>作業</th><th>合計</th><th>件数</th><th>平均/件</th></tr>
+        <?php foreach ($byTask as $r): ?>
+          <?php $m = (int)$r['minutes_sum']; $c = (int)$r['cnt']; $a = $c? (int)round($m/$c):0; ?>
+          <tr>
+            <td><?=h($r['label'])?></td>
+            <td><?=h(mmToHM($m))?>（<?= $m ?>分）</td>
+            <td><?= $c ?></td>
+            <td><?=h(mmToHM($a))?>（<?= $a ?>分）</td>
+          </tr>
+        <?php endforeach; ?>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>品目別（crops）</h2>
+      <table>
+        <tr><th>品目</th><th>合計</th><th>件数</th><th>平均/件</th></tr>
+        <?php foreach ($byCrop as $r): ?>
+          <?php $m = (int)$r['minutes_sum']; $c = (int)$r['cnt']; $a = $c? (int)round($m/$c):0; ?>
+          <tr>
+            <td><?=h($r['label'])?></td>
+            <td><?=h(mmToHM($m))?>（<?= $m ?>分）</td>
+            <td><?= $c ?></td>
+            <td><?=h(mmToHM($a))?>（<?= $a ?>分）</td>
+          </tr>
+        <?php endforeach; ?>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>圃場別（fields）</h2>
+      <table>
+        <tr><th>圃場</th><th>合計</th><th>件数</th><th>平均/件</th></tr>
+        <?php foreach ($byField as $r): ?>
+          <?php $m = (int)$r['minutes_sum']; $c = (int)$r['cnt']; $a = $c? (int)round($m/$c):0; ?>
+          <tr>
+            <td><?=h($r['label'])?></td>
+            <td><?=h(mmToHM($m))?>（<?= $m ?>分）</td>
+            <td><?= $c ?></td>
+            <td><?=h(mmToHM($a))?>（<?= $a ?>分）</td>
+          </tr>
+        <?php endforeach; ?>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>研修生別（users）</h2>
+      <table>
+        <tr><th>ユーザー</th><th>合計</th><th>件数</th><th>平均/件</th></tr>
+        <?php foreach ($byUser as $r): ?>
+          <?php $m = (int)$r['minutes_sum']; $c = (int)$r['cnt']; $a = $c? (int)round($m/$c):0; ?>
+          <tr>
+            <td><?=h($r['label'])?></td>
+            <td><?=h(mmToHM($m))?>（<?= $m ?>分）</td>
+            <td><?= $c ?></td>
+            <td><?=h(mmToHM($a))?>（<?= $a ?>分）</td>
+          </tr>
+        <?php endforeach; ?>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <h2>圃場×区画（上位30）</h2>
+    <table>
+      <tr><th>圃場</th><th>区画</th><th>合計</th><th>件数</th><th>平均/件</th></tr>
+      <?php foreach ($byFieldPlot as $r): ?>
+        <?php
+          $m = (int)$r['minutes_sum']; $c = (int)$r['cnt']; $a = $c? (int)round($m/$c):0;
+          $plotLabel = (string)$r['plot'];
+        ?>
+        <tr>
+          <td><?=h($r['field_label'])?></td>
+          <td><?= $plotLabel !== '' ? h($plotLabel) : '<span class="muted">（未入力）</span>' ?></td>
+          <td><?=h(mmToHM($m))?>（<?= $m ?>分）</td>
+          <td><?= $c ?></td>
+          <td><?=h(mmToHM($a))?>（<?= $a ?>分）</td>
+        </tr>
+      <?php endforeach; ?>
+    </table>
+    <p class="muted">※区画が自由入力なので、表記が揃うほど集計が鋭くなります（datalist候補が効きます）。</p>
+  </div>
+
+</div>
+</body>
+</html>
