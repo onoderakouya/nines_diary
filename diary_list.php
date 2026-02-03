@@ -12,17 +12,14 @@ $to    = $_GET['to'] ?? '';
 $field = (int)($_GET['field_id'] ?? 0);
 $crop  = (int)($_GET['crop_id'] ?? 0);
 $task  = (int)($_GET['task_id'] ?? 0);
-$plot  = trim((string)($_GET['plot'] ?? '')); // ★追加：区画（自由入力で検索）
+$plot  = trim((string)($_GET['plot'] ?? ''));
 
-if ($from)  { $where .= " AND d.date >= :from ";   $params[':from']  = $from; }
-if ($to)    { $where .= " AND d.date <= :to ";     $params[':to']    = $to; }
+if ($from)  { $where .= " AND d.date >= :from ";     $params[':from']  = $from; }
+if ($to)    { $where .= " AND d.date <= :to ";       $params[':to']    = $to; }
 if ($field) { $where .= " AND d.field_id = :field "; $params[':field'] = $field; }
 if ($crop)  { $where .= " AND d.crop_id = :crop ";   $params[':crop']  = $crop; }
 if ($task)  { $where .= " AND d.task_id = :task ";   $params[':task']  = $task; }
-
-// ★追加：区画絞り込み（完全一致）
-// ゆるくしたいなら LIKE に変更できます（後述）
-if ($plot !== '') { $where .= " AND d.plot = :plot "; $params[':plot'] = $plot; }
+if ($plot !== '') { $where .= " AND d.plot = :plot "; $params[':plot'] = $plot; } // 完全一致
 
 $fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
@@ -44,10 +41,10 @@ $rows = $stmt->fetchAll();
 ?>
 <!doctype html>
 <meta charset="utf-8">
-<title>日誌一覧</title>
+<title>日誌実績</title>
 
-<h1>日誌一覧</h1>
-<p><a href="index.php">←ホーム</a> / <a href="diary_new.php">＋追加</a></p>
+<h1>日誌実績</h1>
+<p><a href="index.php">←ホーム</a> / <a href="diary_new.php">＋日誌入力</a></p>
 
 <form method="get">
   <label>From <input type="date" name="from" value="<?=e($from)?>"></label>
@@ -80,7 +77,6 @@ $rows = $stmt->fetchAll();
     <?php endforeach; ?>
   </select>
 
-  <!-- ★追加：区画入力（任意） -->
   <label style="margin-left:8px;">
     区画 <input type="text" name="plot" value="<?=e($plot)?>" placeholder="例：区画1" style="width:120px">
   </label>
@@ -99,15 +95,7 @@ $rows = $stmt->fetchAll();
       / <?=e($r['crop_name'])?>
       / <?=e($r['task_name'])?>
     </div>
-
-    <div>
-      作業時間: <?= (int)$r['minutes'] ?> 分
-      / 天気コード: <?=e((string)($r['weather_code'] ?? ''))?>
-      / 気温(max): <?=e((string)($r['temp_c'] ?? ''))?>
-    </div>
-
-    <?php if (!empty($r['memo'])): ?>
-      <div><?=nl2br(e((string)$r['memo']))?></div>
-    <?php endif; ?>
+    <div>作業時間: <?= (int)$r['minutes'] ?> 分 / 天気コード: <?=e((string)($r['weather_code'] ?? ''))?> / 気温(max): <?=e((string)($r['temp_c'] ?? ''))?></div>
+    <?php if (!empty($r['memo'])): ?><div><?=nl2br(e((string)$r['memo']))?></div><?php endif; ?>
   </div>
 <?php endforeach; ?>

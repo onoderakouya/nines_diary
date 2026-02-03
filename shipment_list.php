@@ -22,7 +22,6 @@ if ($field) { $where .= " AND s.field_id = :field "; $params[':field'] = $field;
 if ($crop)  { $where .= " AND s.crop_id = :crop ";   $params[':crop']  = $crop; }
 if (in_array($unit, ['box','kg'], true)) { $where .= " AND s.unit = :unit "; $params[':unit'] = $unit; }
 
-// 権限制御
 if ($isAdmin) {
   if ($userId) { $where .= " AND s.user_id = :uid "; $params[':uid'] = $userId; }
 } else {
@@ -56,12 +55,12 @@ function unitLabel(string $u): string {
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>出荷一覧</title>
+  <title>出荷実績</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <h1>出荷一覧</h1>
-  <p><a href="index.php">←ホーム</a> / <a href="shipment_new.php">＋出荷入力</a> / <a href="shipment_summary.php">出荷集計</a></p>
+  <h1>出荷実績</h1>
+  <p><a href="index.php">←ホーム</a> / <a href="shipment_new.php">＋出荷入力</a></p>
 
   <form method="get">
     <label>From <input type="date" name="from" value="<?=e((string)$from)?>"></label>

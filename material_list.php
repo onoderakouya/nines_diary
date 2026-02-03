@@ -26,10 +26,12 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll();
 ?>
-<!doctype html><meta charset="utf-8">
-<title>資材費 一覧</title>
-<h1>資材費 一覧</h1>
-<p><a href="index.php">←ホーム</a> / <a href="material_new.php">＋追加</a></p>
+<!doctype html>
+<meta charset="utf-8">
+<title>資材費実績</title>
+
+<h1>資材費実績</h1>
+<p><a href="index.php">←ホーム</a> / <a href="material_new.php">＋資材費入力</a></p>
 
 <form method="get">
   <label>From <input type="date" name="from" value="<?=e($from)?>"></label>
@@ -38,6 +40,7 @@ $rows = $stmt->fetchAll();
 </form>
 
 <hr>
+
 <?php foreach ($rows as $r): ?>
   <div style="padding:10px 0;border-bottom:1px solid #ddd">
     <div><b><?=e($r['date'])?></b> / 圃場: <?=e($r['field_label'] ?? '—')?> / 品目: <?=e($r['crop_name'] ?? '—')?></div>
