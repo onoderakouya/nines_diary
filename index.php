@@ -31,6 +31,9 @@ $u = requireLogin();
     <li><a href="pest_new.php">病害虫を追加</a></li>
     <li><a href="pest_list.php">病害虫一覧</a></li>
 
+    <li><a href="password_change.php">パスワード変更</a></li>
+
+
     <?php if (isAdmin($u)): ?>
       <li><a href="summary.php">集計（管理者）</a></li>
       <li><a href="admin_user_new.php">研修生ユーザー追加（管理者）</a></li>

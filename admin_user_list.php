@@ -29,6 +29,8 @@ function roleLabel(string $r): string {
       <th>メール</th>
       <th>種別</th>
       <th>作成日</th>
+      <th>操作</th>
+
     </tr>
     <?php foreach ($rows as $r): ?>
       <tr>
@@ -37,6 +39,10 @@ function roleLabel(string $r): string {
         <td><?= e($r['email']) ?></td>
         <td><?= e(roleLabel((string)$r['role'])) ?></td>
         <td><?= e((string)$r['created_at']) ?></td>
+        <td>
+            <a href="admin_reset_password.php?id=<?= (int)$r['id'] ?>">パス再発行</a>
+        </td>
+
       </tr>
     <?php endforeach; ?>
   </table>
