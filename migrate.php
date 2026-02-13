@@ -1,0 +1,77 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/db.php';
+
+$dataDir = __DIR__ . '/data';
+if (!is_dir($dataDir)) {
+    if (!mkdir($dataDir, 0775, true) && !is_dir($dataDir)) {
+        fwrite(STDERR, "Failed to create data directory: {$dataDir}\n");
+        exit(1);
+    }
+    echo "Created data directory: {$dataDir}\n";
+} else {
+    echo "Data directory exists: {$dataDir}\n";
+}
+
+$pdo = db();
+$requiredTables = ['users', 'fields', 'crops', 'tasks', 'diary_entries', 'materials', 'pests', 'shipments'];
+$missingTables = [];
+
+$existsStmt = $pdo->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = :name");
+foreach ($requiredTables as $table) {
+    $existsStmt->execute([':name' => $table]);
+    if ($existsStmt->fetchColumn() === false) {
+        $missingTables[] = $table;
+    }
+}
+
+if ($missingTables === []) {
+    echo "All required tables already exist. Skipping schema and seed.\n";
+    exit(0);
+}
+
+echo "Missing tables detected: " . implode(', ', $missingTables) . "\n";
+
+$schemaFile = __DIR__ . '/db/schema.sql';
+$seedFile = __DIR__ . '/db/seed.sql';
+
+if (!is_file($schemaFile) || !is_readable($schemaFile)) {
+    fwrite(STDERR, "schema.sql not found or unreadable at {$schemaFile}\n");
+    exit(1);
+}
+if (!is_file($seedFile) || !is_readable($seedFile)) {
+    fwrite(STDERR, "seed.sql not found or unreadable at {$seedFile}\n");
+    exit(1);
+}
+
+$schemaSql = file_get_contents($schemaFile);
+$seedSql = file_get_contents($seedFile);
+if ($schemaSql === false || $seedSql === false) {
+    fwrite(STDERR, "Failed to read schema or seed SQL files.\n");
+    exit(1);
+}
+
+try {
+    $pdo->beginTransaction();
+    $pdo->exec($schemaSql);
+    echo "Applied schema.sql\n";
+
+    $pdo->exec($seedSql);
+    echo "Applied seed.sql\n";
+
+    $pdo->commit();
+} catch (Throwable $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    fwrite(STDERR, "Migration failed: " . $e->getMessage() . "\n");
+    exit(1);
+}
+
+foreach ($requiredTables as $table) {
+    $existsStmt->execute([':name' => $table]);
+    echo ($existsStmt->fetchColumn() === false ? "Missing after migration: " : "Ready table: ") . $table . "\n";
+}
+
+echo "Migration completed. SQLite path: " . DB_PATH . "\n";
