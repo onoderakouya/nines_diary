@@ -95,12 +95,12 @@ exit;
   </div>
 </div>
 
-<div class="container form-page">
+<div class="container page form-page">
 
-  <h1 class="form-page-title">病害虫記録フォーム</h1>
+  <h1 class="form-page-title page-header">病害虫記録フォーム</h1>
 
   <?php if ($err): ?>
-    <div class="card form-section error-message">
+    <div class="card form-section error-message error-summary">
       <?=e($err)?>
     </div>
   <?php endif; ?>
@@ -114,16 +114,16 @@ exit;
   <form method="post" enctype="multipart/form-data">
 
     <div class="card form-section">
-      <h2 class="form-section-title">基本情報</h2>
+      <h2 class="form-section-title card-title">基本情報</h2>
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">日付<span class="req">*</span></label>
-          <input class="form-input" type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
+          <input class="form-input form-control" type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
         </div>
 
         <div class="form-row">
           <label class="form-label">圃場（ハウス）<span class="req">*</span></label>
-          <select class="form-input" name="field_id" required>
+          <select class="form-input form-control" name="field_id" required>
             <option value="">選択</option>
             <?php foreach ($fields as $f): ?>
               <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
@@ -133,7 +133,7 @@ exit;
 
         <div class="form-row">
           <label class="form-label">品目<span class="req">*</span></label>
-          <select class="form-input" name="crop_id" required>
+          <select class="form-input form-control" name="crop_id" required>
             <option value="">選択</option>
             <?php foreach ($crops as $c): ?>
               <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
@@ -144,23 +144,23 @@ exit;
     </div>
 
     <div class="card form-section">
-      <h2 class="form-section-title">症状の記録</h2>
+      <h2 class="form-section-title card-title">症状の記録</h2>
       <div class="form-row">
         <label class="form-label">タグ（任意）</label>
-        <select class="form-input" name="symptom_tag">
+        <select class="form-input form-control" name="symptom_tag">
           <option value="">—</option>
           <?php foreach ($tagOptions as $t): ?>
             <option value="<?=e($t)?>"><?=e($t)?></option>
           <?php endforeach; ?>
         </select>
-        <div class="hint">※集計で効くので、分かる範囲で選ぶと強いです</div>
+        <div class="hint help-text">※集計で効くので、分かる範囲で選ぶと強いです</div>
       </div>
     </div>
 
     <div class="card form-section">
       <div class="form-row">
         <label class="form-label">症状<span class="req">*</span></label>
-        <textarea class="form-input" name="symptom_text" required placeholder="例：
+        <textarea class="form-input form-control" name="symptom_text" required placeholder="例：
 ・下葉に白い粉
 ・入口付近から広がる
 ・昨日より悪化"></textarea>
@@ -170,7 +170,7 @@ exit;
     <div class="card form-section">
       <div class="form-row">
         <label class="form-label">対応（任意）</label>
-        <textarea class="form-input" name="action_text" placeholder="例：
+        <textarea class="form-input form-control" name="action_text" placeholder="例：
 ・被害葉を除去
 ・薬剤Aを500倍で散布"></textarea>
       </div>
@@ -179,8 +179,8 @@ exit;
     <div class="card form-section">
       <div class="form-row">
         <label class="form-label">写真（任意）</label>
-        <input class="form-input" type="file" name="photo" accept="image/*">
-        <div class="hint">※jpg/png/webp対応。病害虫は写真が“証拠”になります。</div>
+        <input class="form-input form-control" type="file" name="photo" accept="image/*">
+        <div class="hint help-text">※jpg/png/webp対応。病害虫は写真が“証拠”になります。</div>
       </div>
     </div>
 

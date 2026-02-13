@@ -64,28 +64,28 @@ exit;
   </div>
 </div>
 
-<div class="container form-page">
+<div class="container page form-page">
 
-  <h1 class="form-page-title">出荷入力フォーム</h1>
+  <h1 class="form-page-title page-header">出荷入力フォーム</h1>
 
   <?php if ($err): ?>
-    <div class="card form-section error-message">
+    <div class="card form-section error-message error-summary">
       <?=e($err)?>
     </div>
   <?php endif; ?>
 
   <form method="post">
     <div class="card form-section">
-      <h2 class="form-section-title">基本情報</h2>
+      <h2 class="form-section-title card-title">基本情報</h2>
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">日付<span class="req">*</span></label>
-          <input class="form-input" type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
+          <input class="form-input form-control" type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
         </div>
 
         <div class="form-row">
           <label class="form-label">圃場（ハウス）<span class="req">*</span></label>
-          <select class="form-input" name="field_id" required>
+          <select class="form-input form-control" name="field_id" required>
             <option value="">選択</option>
             <?php foreach ($fields as $f): ?>
               <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
@@ -95,13 +95,13 @@ exit;
 
         <div class="form-row">
           <label class="form-label">区画（任意）</label>
-          <input class="form-input" name="plot" placeholder="例：区画1">
-          <div class="hint">※表記を揃えると集計が強くなります</div>
+          <input class="form-input form-control" name="plot" placeholder="例：区画1">
+          <div class="hint help-text">※表記を揃えると集計が強くなります</div>
         </div>
 
         <div class="form-row">
           <label class="form-label">品目<span class="req">*</span></label>
-          <select class="form-input" name="crop_id" required>
+          <select class="form-input form-control" name="crop_id" required>
             <option value="">選択</option>
             <?php foreach ($crops as $c): ?>
               <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
@@ -112,31 +112,31 @@ exit;
     </div>
 
     <div class="card form-section">
-      <h2 class="form-section-title">出荷内容</h2>
+      <h2 class="form-section-title card-title">出荷内容</h2>
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">数量<span class="req">*</span></label>
-          <input class="form-input" type="number" name="quantity" step="0.1" min="0.1" required placeholder="例：10">
-          <div class="hint">※箱の場合は整数でもOK（10箱→10）</div>
+          <input class="form-input form-control" type="number" name="quantity" step="0.1" min="0.1" required placeholder="例：10">
+          <div class="hint help-text">※箱の場合は整数でもOK（10箱→10）</div>
         </div>
 
         <div class="form-row">
           <label class="form-label">単位<span class="req">*</span></label>
-          <select class="form-input" name="unit" required>
+          <select class="form-input form-control" name="unit" required>
             <option value="">選択</option>
             <option value="box">箱</option>
             <option value="kg">kg</option>
           </select>
-          <div class="hint">※箱 / kg を必ず選択</div>
+          <div class="hint help-text">※箱 / kg を必ず選択</div>
         </div>
       </div>
     </div>
 
     <div class="card form-section">
-      <h2 class="form-section-title">補足情報</h2>
+      <h2 class="form-section-title card-title">補足情報</h2>
       <div class="form-row">
         <label class="form-label">メモ（任意）</label>
-        <textarea class="form-input" name="note" placeholder="例：等級・出荷先・備考など"></textarea>
+        <textarea class="form-input form-control" name="note" placeholder="例：等級・出荷先・備考など"></textarea>
       </div>
     </div>
 

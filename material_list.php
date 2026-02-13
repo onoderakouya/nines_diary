@@ -56,25 +56,25 @@ $csv = "material_export.php"
 
   <div class="card">
     <form method="get">
-      <div class="grid">
-        <div>
-          <label>From</label>
-          <input type="date" name="from" value="<?=e((string)$from)?>">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">From</label>
+          <input class="form-control" type="date" name="from" value="<?=e((string)$from)?>">
         </div>
-        <div>
-          <label>To</label>
-          <input type="date" name="to" value="<?=e((string)$to)?>">
+        <div class="form-row">
+          <label class="form-label">To</label>
+          <input class="form-control" type="date" name="to" value="<?=e((string)$to)?>">
         </div>
       </div>
 
-      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <div class="filter-actions table-actions">
         <button class="btn primary" type="submit">絞り込み</button>
-        <a class="btn" href="material_list.php">リセット</a>
+        <a class="btn btn-secondary" href="material_list.php">リセット</a>
       </div>
     </form>
   </div>
 
-  <div class="card" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+  <div class="card meta-summary">
     <div>
       <div class="muted">表示件数</div>
       <div style="font-size:18px;font-weight:900"><?= number_format(count($rows)) ?> 件</div>
@@ -88,9 +88,9 @@ $csv = "material_export.php"
 
   <?php foreach ($rows as $r): ?>
     <div class="card">
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
-        <div style="min-width:220px;flex:1">
-          <div style="font-size:16px;font-weight:900">
+      <div class="list-row">
+        <div class="list-main">
+          <div class="card-title">
             <?=e((string)$r['date'])?>
           </div>
           <div class="kv">
@@ -98,25 +98,25 @@ $csv = "material_export.php"
             / 品目: <?=e((string)($r['crop_name'] ?? '—'))?>
           </div>
 
-          <div style="margin-top:10px;font-size:18px;font-weight:900">
+          <div class="section-sm" style="font-size:18px;font-weight:900">
             <?=e((string)$r['item_name'])?>
           </div>
 
           <?php if ($r['amount'] !== null): ?>
-            <div class="muted" style="margin-top:6px">
+            <div class="muted help-text">
               数量：<?=e((string)$r['amount'])?> <?=e((string)($r['unit'] ?? ''))?>
             </div>
           <?php endif; ?>
 
           <?php if (!empty($r['note'])): ?>
-            <div style="margin-top:10px">
+            <div class="section-sm">
               <div class="muted" style="font-weight:700;margin-bottom:4px">メモ</div>
               <div><?= nl2br(e((string)$r['note'])) ?></div>
             </div>
           <?php endif; ?>
         </div>
 
-        <div style="text-align:right;min-width:170px">
+        <div class="list-side">
           <div class="muted">金額</div>
           <div style="font-size:22px;font-weight:900">
             ¥<?=number_format((int)$r['cost_yen'])?>
