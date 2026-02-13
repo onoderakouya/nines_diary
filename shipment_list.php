@@ -87,20 +87,20 @@ if ($isAdmin) {
 
   <div class="card">
     <form method="get">
-      <div class="grid">
-        <div>
-          <label>From</label>
-          <input type="date" name="from" value="<?=e((string)$from)?>">
+      <div class="form-grid filter-grid">
+        <div class="form-row">
+          <label class="form-label">From</label>
+          <input class="form-control" type="date" name="from" value="<?=e((string)$from)?>">
         </div>
-        <div>
-          <label>To</label>
-          <input type="date" name="to" value="<?=e((string)$to)?>">
+        <div class="form-row">
+          <label class="form-label">To</label>
+          <input class="form-control" type="date" name="to" value="<?=e((string)$to)?>">
         </div>
 
         <?php if ($isAdmin): ?>
-        <div>
-          <label>ユーザー</label>
-          <select name="user_id">
+        <div class="form-row">
+          <label class="form-label">ユーザー</label>
+          <select class="form-control" name="user_id">
             <option value="0">すべて</option>
             <?php foreach ($users as $uu): ?>
               <option value="<?= (int)$uu['id'] ?>" <?= $userId===(int)$uu['id']?'selected':'' ?>>
@@ -111,9 +111,9 @@ if ($isAdmin) {
         </div>
         <?php endif; ?>
 
-        <div>
-          <label>圃場</label>
-          <select name="field_id">
+        <div class="form-row">
+          <label class="form-label">圃場</label>
+          <select class="form-control" name="field_id">
             <option value="0">すべて</option>
             <?php foreach ($fields as $f): ?>
               <option value="<?= (int)$f['id'] ?>" <?= $field===(int)$f['id']?'selected':'' ?>>
@@ -123,9 +123,9 @@ if ($isAdmin) {
           </select>
         </div>
 
-        <div>
-          <label>品目</label>
-          <select name="crop_id">
+        <div class="form-row">
+          <label class="form-label">品目</label>
+          <select class="form-control" name="crop_id">
             <option value="0">すべて</option>
             <?php foreach ($crops as $c): ?>
               <option value="<?= (int)$c['id'] ?>" <?= $crop===(int)$c['id']?'selected':'' ?>>
@@ -135,9 +135,9 @@ if ($isAdmin) {
           </select>
         </div>
 
-        <div>
-          <label>単位</label>
-          <select name="unit">
+        <div class="form-row">
+          <label class="form-label">単位</label>
+          <select class="form-control" name="unit">
             <option value="">すべて</option>
             <option value="box" <?= $unit==='box'?'selected':'' ?>>箱</option>
             <option value="kg"  <?= $unit==='kg'?'selected':'' ?>>kg</option>
@@ -145,14 +145,14 @@ if ($isAdmin) {
         </div>
       </div>
 
-      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <div class="filter-actions table-actions">
         <button class="btn primary" type="submit">絞り込み</button>
-        <a class="btn" href="shipment_list.php">リセット</a>
+        <a class="btn btn-secondary" href="shipment_list.php">リセット</a>
       </div>
     </form>
   </div>
 
-  <div class="card" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+  <div class="card meta-summary">
     <div>
       <div class="muted">表示件数</div>
       <div style="font-size:18px;font-weight:900"><?= number_format(count($rows)) ?> 件</div>
@@ -170,9 +170,9 @@ if ($isAdmin) {
       $unitText = unitLabel((string)$r['unit']);
     ?>
     <div class="card">
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
+      <div class="list-row">
         <div>
-          <div style="font-size:16px;font-weight:900">
+          <div class="card-title">
             <?=e((string)$r['date'])?>
           </div>
           <div class="kv">
@@ -183,7 +183,7 @@ if ($isAdmin) {
           </div>
         </div>
 
-        <div style="text-align:right;min-width:160px">
+        <div class="list-side">
           <div class="badge"><?=e($unitText)?></div>
           <div style="margin-top:6px;font-size:22px;font-weight:900">
             <?= e((string)$qty) ?>

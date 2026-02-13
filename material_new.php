@@ -71,12 +71,12 @@ exit;
   </div>
 </div>
 
-<div class="container form-page">
+<div class="container page form-page">
 
-  <h1 class="form-page-title">資材費入力フォーム</h1>
+  <h1 class="form-page-title page-header">資材費入力フォーム</h1>
 
   <?php if ($err): ?>
-    <div class="card form-section error-message">
+    <div class="card form-section error-message error-summary">
       <?=e($err)?>
     </div>
   <?php endif; ?>
@@ -84,16 +84,16 @@ exit;
   <form method="post">
 
     <div class="card form-section">
-      <h2 class="form-section-title">基本情報</h2>
+      <h2 class="form-section-title card-title">基本情報</h2>
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">日付<span class="req">*</span></label>
-          <input class="form-input" type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
+          <input class="form-input form-control" type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
         </div>
 
         <div class="form-row">
           <label class="form-label">圃場（任意）</label>
-          <select class="form-input" name="field_id">
+          <select class="form-input form-control" name="field_id">
             <option value="0">—</option>
             <?php foreach ($fields as $f): ?>
               <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
@@ -103,7 +103,7 @@ exit;
 
         <div class="form-row">
           <label class="form-label">品目（任意）</label>
-          <select class="form-input" name="crop_id">
+          <select class="form-input form-control" name="crop_id">
             <option value="0">—</option>
             <?php foreach ($crops as $c): ?>
               <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
@@ -114,40 +114,40 @@ exit;
     </div>
 
     <div class="card form-section">
-      <h2 class="form-section-title">費用情報</h2>
+      <h2 class="form-section-title card-title">費用情報</h2>
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">資材名<span class="req">*</span></label>
-          <input class="form-input" name="item_name" required placeholder="例：農薬A / 肥料B / つる下げ紐 など">
-          <div class="hint">※表記が揃うと「資材名トップ10」が正確になります</div>
+          <input class="form-input form-control" name="item_name" required placeholder="例：農薬A / 肥料B / つる下げ紐 など">
+          <div class="hint help-text">※表記が揃うと「資材名トップ10」が正確になります</div>
         </div>
         <div class="form-row">
           <label class="form-label">金額（円）<span class="req">*</span></label>
-          <input class="form-input" type="number" name="cost_yen" min="1" step="1" required placeholder="例：3500">
-          <div class="hint">※税込でOK（運用を統一）</div>
+          <input class="form-input form-control" type="number" name="cost_yen" min="1" step="1" required placeholder="例：3500">
+          <div class="hint help-text">※税込でOK（運用を統一）</div>
         </div>
       </div>
     </div>
 
     <div class="card form-section">
-      <h2 class="form-section-title">任意入力</h2>
+      <h2 class="form-section-title card-title">任意入力</h2>
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">数量（任意）</label>
-          <input class="form-input" type="number" name="amount" step="0.1" placeholder="例：2">
+          <input class="form-input form-control" type="number" name="amount" step="0.1" placeholder="例：2">
         </div>
         <div class="form-row">
           <label class="form-label">単位（任意）</label>
-          <input class="form-input" name="unit" placeholder="例：袋 / 本 / L / kg など">
+          <input class="form-input form-control" name="unit" placeholder="例：袋 / 本 / L / kg など">
         </div>
       </div>
-      <div class="hint">※数量と単位は「分かるときだけ」でOK</div>
+      <div class="hint help-text">※数量と単位は「分かるときだけ」でOK</div>
     </div>
 
     <div class="card form-section">
       <div class="form-row">
         <label class="form-label">メモ（任意）</label>
-        <textarea class="form-input" name="note" placeholder="例：〇〇用、△△で使用、残量など"></textarea>
+        <textarea class="form-input form-control" name="note" placeholder="例：〇〇用、△△で使用、残量など"></textarea>
       </div>
     </div>
 

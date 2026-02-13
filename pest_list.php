@@ -56,25 +56,25 @@ $csv = "pest_export.php"
 
   <div class="card">
     <form method="get">
-      <div class="grid">
-        <div>
-          <label>From</label>
-          <input type="date" name="from" value="<?=e((string)$from)?>">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">From</label>
+          <input class="form-control" type="date" name="from" value="<?=e((string)$from)?>">
         </div>
-        <div>
-          <label>To</label>
-          <input type="date" name="to" value="<?=e((string)$to)?>">
+        <div class="form-row">
+          <label class="form-label">To</label>
+          <input class="form-control" type="date" name="to" value="<?=e((string)$to)?>">
         </div>
       </div>
 
-      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <div class="filter-actions table-actions">
         <button class="btn primary" type="submit">絞り込み</button>
-        <a class="btn" href="pest_list.php">リセット</a>
+        <a class="btn btn-secondary" href="pest_list.php">リセット</a>
       </div>
     </form>
   </div>
 
-  <div class="card" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+  <div class="card meta-summary">
     <div>
       <div class="muted">表示件数</div>
       <div style="font-size:18px;font-weight:900"><?= number_format(count($rows)) ?> 件</div>
@@ -88,7 +88,7 @@ $csv = "pest_export.php"
 
   <?php foreach ($rows as $r): ?>
     <div class="card">
-      <div style="display:flex;gap:14px;flex-wrap:wrap">
+      <div class="list-row-media">
         <?php if (!empty($r['photo_path'])): ?>
           <div style="flex:0 0 220px">
             <img
@@ -99,10 +99,10 @@ $csv = "pest_export.php"
           </div>
         <?php endif; ?>
 
-        <div style="flex:1;min-width:220px">
-          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start">
+        <div class="list-main">
+          <div class="list-row">
             <div>
-              <div style="font-size:16px;font-weight:900">
+              <div class="card-title">
                 <?=e((string)$r['date'])?>
               </div>
               <div class="kv">
@@ -112,13 +112,13 @@ $csv = "pest_export.php"
             <div class="badge">病害虫</div>
           </div>
 
-          <div style="margin-top:10px">
+          <div class="section-sm">
             <div class="muted" style="font-weight:700;margin-bottom:4px">症状</div>
             <div><?= nl2br(e((string)$r['symptom_text'])) ?></div>
           </div>
 
           <?php if (!empty($r['action_text'])): ?>
-            <div style="margin-top:10px">
+            <div class="section-sm">
               <div class="muted" style="font-weight:700;margin-bottom:4px">対応</div>
               <div><?= nl2br(e((string)$r['action_text'])) ?></div>
             </div>
