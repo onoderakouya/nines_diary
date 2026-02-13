@@ -9,90 +9,148 @@ $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $date = $_POST['date'] ?? '';
+  $date     = $_POST['date'] ?? '';
   $field_id = (int)($_POST['field_id'] ?? 0);
   $crop_id  = (int)($_POST['crop_id'] ?? 0);
 
   $item_name = trim((string)($_POST['item_name'] ?? ''));
-  $amount = $_POST['amount'] === '' ? null : (float)$_POST['amount'];
-  $unit   = trim((string)($_POST['unit'] ?? ''));
-  $cost_yen = (int)($_POST['cost_yen'] ?? 0);
-  $note = trim((string)($_POST['note'] ?? ''));
+  $amount    = trim((string)($_POST['amount'] ?? ''));
+  $unit      = trim((string)($_POST['unit'] ?? ''));
+  $cost_yen  = (int)($_POST['cost_yen'] ?? 0);
+  $note      = trim((string)($_POST['note'] ?? ''));
 
-  // 圃場 or 品目 どっちか一方は必須（両方でもOK）
-  if (!$date || $item_name==='' || $cost_yen<=0 || ($field_id===0 && $crop_id===0)) {
-    $err = '必須項目を入力してください（圃場か品目のどちらかは必須、金額は1円以上）';
+  $amountVal = null;
+  if ($amount !== '') {
+    $amountVal = (float)$amount;
+  }
+
+  if (!$date || $item_name === '' || $cost_yen <= 0) {
+    $err = '必須項目を入力してください（資材名・日付・金額）';
   } else {
-    $stmt = $pdo->prepare("INSERT INTO materials
-      (user_id,date,field_id,crop_id,item_name,amount,unit,cost_yen,note,created_at)
+    $st = $pdo->prepare("
+      INSERT INTO materials (user_id,date,field_id,crop_id,item_name,amount,unit,cost_yen,note,created_at)
       VALUES (:user_id,:date,:field_id,:crop_id,:item_name,:amount,:unit,:cost_yen,:note,:created_at)
     ");
-    $stmt->execute([
+    $st->execute([
       ':user_id'=>$u['id'],
       ':date'=>$date,
-      ':field_id'=>$field_id ?: null,
-      ':crop_id'=>$crop_id ?: null,
+      ':field_id'=>($field_id?:null),
+      ':crop_id'=>($crop_id?:null),
       ':item_name'=>$item_name,
-      ':amount'=>$amount,
-      ':unit'=>$unit ?: null,
+      ':amount'=>$amountVal,
+      ':unit'=>($unit!==''?$unit:null),
       ':cost_yen'=>$cost_yen,
-      ':note'=>$note ?: null,
+      ':note'=>($note!==''?$note:null),
       ':created_at'=>date('c'),
     ]);
-    header('Location: material_list.php');
-    exit;
+header('Location: material_list.php?toast=' . rawurlencode('保存しました'));
+exit;
+
   }
 }
 ?>
-<!doctype html><meta charset="utf-8">
-<title>資材費 追加</title>
-<h1>資材費 追加</h1>
-<p><a href="index.php">←ホーム</a></p>
-<?php if ($err): ?><p style="color:red"><?=e($err)?></p><?php endif; ?>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>資材費入力</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="app.css">
+<script defer src="app.js"></script>
 
-<form method="post">
-  <label>日付*<br>
-    <input type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
-  </label><br><br>
+</head>
+<body>
 
-  <label>圃場（任意）<br>
-    <select name="field_id">
-      <option value="0">選択しない</option>
-      <?php foreach ($fields as $f): ?>
-        <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
-      <?php endforeach; ?>
-    </select>
-  </label><br><br>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="title">資材費入力</div>
+    <div class="actions">
+      <a class="btn" href="material_list.php">一覧</a>
+      <a class="btn ghost" href="index.php">ホーム</a>
+    </div>
+  </div>
+</div>
 
-  <label>品目（任意）<br>
-    <select name="crop_id">
-      <option value="0">選択しない</option>
-      <?php foreach ($crops as $c): ?>
-        <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
-      <?php endforeach; ?>
-    </select>
-  </label>
-  <p style="margin:6px 0;color:#555">※圃場か品目のどちらかは必須（両方でもOK）</p>
+<div class="container">
 
-  <label>資材名*<br>
-    <input name="item_name" required style="width:320px">
-  </label><br><br>
+  <?php if ($err): ?>
+    <div class="card" style="border-color:#dc2626;color:#dc2626">
+      <?=e($err)?>
+    </div>
+  <?php endif; ?>
 
-  <label>量（任意）<br>
-    <input type="number" name="amount" step="0.01" min="0">
-  </label><br><br>
+  <form method="post">
 
-  <label>単位（任意）<br>
-    <input name="unit" placeholder="kg/L/袋 など">
-  </label><br><br>
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>日付<span class="req">*</span></label>
+          <input type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
+        </div>
 
-  <label>金額（円）*<br>
-    <input type="number" name="cost_yen" min="1" step="1" required>
-  </label><br><br>
+        <div>
+          <label>圃場（任意）</label>
+          <select name="field_id">
+            <option value="0">—</option>
+            <?php foreach ($fields as $f): ?>
+              <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
 
-  <label>メモ（任意）<br>
-    <input name="note" style="width:320px">
-  </label><br><br>
+        <div>
+          <label>品目（任意）</label>
+          <select name="crop_id">
+            <option value="0">—</option>
+            <?php foreach ($crops as $c): ?>
+              <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+    </div>
 
-  <button>保存</button>
-</form>
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>資材名<span class="req">*</span></label>
+          <input name="item_name" required placeholder="例：農薬A / 肥料B / つる下げ紐 など">
+          <div class="hint">※表記が揃うと「資材名トップ10」が正確になります</div>
+        </div>
+        <div>
+          <label>金額（円）<span class="req">*</span></label>
+          <input type="number" name="cost_yen" min="1" step="1" required placeholder="例：3500">
+          <div class="hint">※税込でOK（運用を統一）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>数量（任意）</label>
+          <input type="number" name="amount" step="0.1" placeholder="例：2">
+        </div>
+        <div>
+          <label>単位（任意）</label>
+          <input name="unit" placeholder="例：袋 / 本 / L / kg など">
+        </div>
+      </div>
+      <div class="hint">※数量と単位は「分かるときだけ」でOK</div>
+    </div>
+
+    <div class="card">
+      <label>メモ（任意）</label>
+      <textarea name="note" placeholder="例：〇〇用、△△で使用、残量など"></textarea>
+    </div>
+
+    <div class="card">
+      <button class="btn primary" style="width:100%;font-size:18px;padding:14px">
+        保存する
+      </button>
+    </div>
+
+  </form>
+</div>
+</body>
+</html>
