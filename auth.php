@@ -29,3 +29,33 @@ function requireAdmin(): array {
   }
   return $u;
 }
+
+function csrfToken(): string {
+  if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+  }
+  return $_SESSION['csrf_token'];
+}
+
+function verifyCsrfToken(?string $token): bool {
+  if (!is_string($token) || $token === '') {
+    return false;
+  }
+  $sessionToken = $_SESSION['csrf_token'] ?? '';
+  if (!is_string($sessionToken) || $sessionToken === '') {
+    return false;
+  }
+  return hash_equals($sessionToken, $token);
+}
+
+function setFlash(string $key, string $message): void {
+  $_SESSION['flash'][$key] = $message;
+}
+
+function getFlash(string $key): ?string {
+  $message = $_SESSION['flash'][$key] ?? null;
+  if ($message !== null) {
+    unset($_SESSION['flash'][$key]);
+  }
+  return is_string($message) ? $message : null;
+}

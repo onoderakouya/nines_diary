@@ -3,6 +3,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 $u = requireLogin();
 $pdo = db();
+$csrf = csrfToken();
+$flashSuccess = getFlash('success');
+$flashError = getFlash('error');
 
 $where = " WHERE m.user_id = :uid ";
 $params = [':uid'=>$u['id']];
@@ -53,6 +56,18 @@ $csv = "material_export.php"
 </div>
 
 <div class="container">
+
+  <?php if ($flashSuccess): ?>
+    <div class="card" style="border-color:#86efac;background:#f0fdf4;color:#166534">
+      <?= e($flashSuccess) ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($flashError): ?>
+    <div class="card error">
+      <?= e($flashError) ?>
+    </div>
+  <?php endif; ?>
 
   <div class="card">
     <form method="get">
@@ -123,6 +138,16 @@ $csv = "material_export.php"
           </div>
           <div class="badge" style="margin-top:8px">資材費</div>
         </div>
+      </div>
+
+      <div class="section-sm" style="display:flex;justify-content:flex-end">
+        <form method="post" action="delete.php" onsubmit="return confirm('このデータを削除します。よろしいですか？');">
+          <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+          <input type="hidden" name="type" value="material">
+          <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
+          <input type="hidden" name="redirect" value="material_list.php">
+          <button class="btn" style="border-color:#fecaca;color:#b91c1c" type="submit">削除</button>
+        </form>
       </div>
     </div>
   <?php endforeach; ?>
