@@ -16,22 +16,21 @@ if (!is_dir($dataDir)) {
 
 $pdo = db();
 $requiredTables = ['users', 'fields', 'crops', 'tasks', 'diary_entries', 'materials', 'pests', 'shipments'];
-$missingTables = [];
-
 $existsStmt = $pdo->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = :name");
+
+$missingBefore = [];
 foreach ($requiredTables as $table) {
     $existsStmt->execute([':name' => $table]);
     if ($existsStmt->fetchColumn() === false) {
-        $missingTables[] = $table;
+        $missingBefore[] = $table;
     }
 }
 
-if ($missingTables === []) {
-    echo "All required tables already exist. Skipping schema and seed.\n";
-    exit(0);
+if ($missingBefore === []) {
+    echo "All required tables already exist. Re-applying schema/seed for safety.\n";
+} else {
+    echo "Missing tables detected before migration: " . implode(', ', $missingBefore) . "\n";
 }
-
-echo "Missing tables detected: " . implode(', ', $missingTables) . "\n";
 
 $schemaFile = __DIR__ . '/db/schema.sql';
 $seedFile = __DIR__ . '/db/seed.sql';
@@ -69,9 +68,20 @@ try {
     exit(1);
 }
 
+$missingAfter = [];
 foreach ($requiredTables as $table) {
     $existsStmt->execute([':name' => $table]);
-    echo ($existsStmt->fetchColumn() === false ? "Missing after migration: " : "Ready table: ") . $table . "\n";
+    if ($existsStmt->fetchColumn() === false) {
+        $missingAfter[] = $table;
+        echo "Missing after migration: {$table}\n";
+    } else {
+        echo "Ready table: {$table}\n";
+    }
+}
+
+if ($missingAfter !== []) {
+    fwrite(STDERR, "Table check failed after migration: " . implode(', ', $missingAfter) . "\n");
+    exit(1);
 }
 
 echo "Migration completed. SQLite path: " . DB_PATH . "\n";

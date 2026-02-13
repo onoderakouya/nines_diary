@@ -9,12 +9,14 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Master data tables
 CREATE TABLE IF NOT EXISTS fields (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   label TEXT NOT NULL UNIQUE,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- crops master used by diary/material/pest/shipment forms
 CREATE TABLE IF NOT EXISTS crops (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,

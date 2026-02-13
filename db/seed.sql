@@ -10,11 +10,13 @@ VALUES
   (2, '南ハウス', datetime('now')),
   (3, '露地A', datetime('now'));
 
+-- crop master seed data
 INSERT OR IGNORE INTO crops (id, name, created_at)
 VALUES
   (1, 'トマト', datetime('now')),
   (2, 'きゅうり', datetime('now')),
-  (3, 'ピーマン', datetime('now'));
+  (3, 'ピーマン', datetime('now')),
+  (4, 'なす', datetime('now'));
 
 INSERT OR IGNORE INTO tasks (id, name, created_at)
 VALUES
