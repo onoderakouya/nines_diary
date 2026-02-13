@@ -214,7 +214,8 @@ if ($isAdmin) {
         </div>
       <?php endif; ?>
 
-      <div class="section-sm" style="display:flex;justify-content:flex-end">
+      <div class="section-sm" style="display:flex;justify-content:flex-end;gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="btn" href="shipment_edit.php?id=<?= (int)$r['id'] ?>">編集</a>
         <form method="post" action="delete.php" onsubmit="return confirm('このデータを削除します。よろしいですか？');">
           <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
           <input type="hidden" name="type" value="shipment">
