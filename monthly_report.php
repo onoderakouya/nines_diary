@@ -5,14 +5,12 @@ $u = requireLogin();
 requireAdmin();
 $pdo = db();
 
-function ymd(string $s): string { return $s; }
-
 // 対象月（YYYY-MM）。未指定なら当月
 $ym = trim((string)($_GET['ym'] ?? date('Y-m')));
 if (!preg_match('/^\d{4}-\d{2}$/', $ym)) $ym = date('Y-m');
 
 $from = $ym . '-01';
-$to   = $ym . '-31'; // SQLiteなのでざっくり末日。WHEREは文字列比較でもOK（YYYY-MM-DD）
+$to   = date('Y-m-t', strtotime($from));
 
 // 期間パラメータ
 $params = [':from'=>$from, ':to'=>$to];
