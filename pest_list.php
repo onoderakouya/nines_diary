@@ -12,9 +12,21 @@ $params = [':uid'=>$u['id']];
 
 $from = $_GET['from'] ?? '';
 $to   = $_GET['to'] ?? '';
+$field = (int)($_GET['field_id'] ?? 0);
+$tag = trim((string)($_GET['tag'] ?? ''));
 
 if ($from) { $where .= " AND p.date >= :from "; $params[':from']=$from; }
 if ($to)   { $where .= " AND p.date <= :to ";   $params[':to']=$to; }
+if ($field) { $where .= " AND p.field_id = :field "; $params[':field'] = $field; }
+if ($tag !== '') {
+  if ($tag === '（未設定）') {
+    $where .= " AND COALESCE(NULLIF(trim(p.symptom_tag), ''), '（未設定）') = :tag ";
+    $params[':tag'] = $tag;
+  } else {
+    $where .= " AND p.symptom_tag = :tag ";
+    $params[':tag'] = $tag;
+  }
+}
 
 $sql = "
 SELECT p.*, f.label AS field_label, c.name AS crop_name
@@ -28,11 +40,14 @@ LIMIT 300
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
 
 // CSVリンク
 $csv = "pest_export.php"
   . "?from=" . urlencode((string)$from)
-  . "&to=" . urlencode((string)$to);
+  . "&to=" . urlencode((string)$to)
+  . "&field_id=" . (int)$field
+  . "&tag=" . urlencode((string)$tag);
 ?>
 <!doctype html>
 <html lang="ja">
@@ -79,6 +94,21 @@ $csv = "pest_export.php"
         <div class="form-row">
           <label class="form-label">To</label>
           <input class="form-control" type="date" name="to" value="<?=e((string)$to)?>">
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">圃場</label>
+          <select class="form-control" name="field_id">
+            <option value="0">すべて</option>
+            <?php foreach ($fields as $f): ?>
+              <option value="<?= (int)$f['id'] ?>" <?= $field === (int)$f['id'] ? 'selected' : '' ?>><?= e($f['label']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">タグ</label>
+          <input class="form-control" type="text" name="tag" value="<?=e((string)$tag)?>" placeholder="例：うどんこ病">
         </div>
       </div>
 
