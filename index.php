@@ -76,13 +76,10 @@ function formatMinutesToHours(int $minutes): string {
 
 <div class="topbar dashboard-topbar">
   <div class="topbar-inner">
-<<<<<<< HEAD
     <a class="dashboard-brand" href="index.php" aria-label="NINE'S DIARY ホーム">
-      <img src="assets/logo.png" alt="NINE'S DIARY" class="dashboard-brand-logo">
+      <img src="assets/logo.png" alt="NINE'S DIARY" class="dashboard-brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';">
+      <span class="dashboard-brand-fallback" style="display:none;">NINE'S DIARY</span>
     </a>
-=======
-    <div class="dashboard-brand">NINE'S DIARY</div>
->>>>>>> main
     <nav class="dashboard-nav" aria-label="グローバルナビゲーション">
       <a class="dashboard-nav-item is-active" href="index.php">ダッシュボード</a>
       <a class="dashboard-nav-item" href="diary_list.php">作業記録</a>
