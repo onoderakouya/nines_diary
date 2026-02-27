@@ -1,7 +1,68 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+$pdo = db();
 $u = requireLogin();
+
+$today = date('Y-m-d');
+$monthPrefix = date('Y-m-') . '%';
+
+$todayMinutesStmt = $pdo->prepare('SELECT COALESCE(SUM(minutes), 0) FROM diary_entries WHERE user_id = ? AND date = ?');
+$todayMinutesStmt->execute([(int)$u['id'], $today]);
+$todayMinutes = (int)$todayMinutesStmt->fetchColumn();
+
+$monthMinutesStmt = $pdo->prepare('SELECT COALESCE(SUM(minutes), 0) FROM diary_entries WHERE user_id = ? AND date LIKE ?');
+$monthMinutesStmt->execute([(int)$u['id'], $monthPrefix]);
+$monthMinutes = (int)$monthMinutesStmt->fetchColumn();
+
+$fieldsCount = (int)$pdo->query('SELECT COUNT(*) FROM fields')->fetchColumn();
+$cropsCount = (int)$pdo->query('SELECT COUNT(*) FROM crops')->fetchColumn();
+
+require_once __DIR__ . '/weather.php';
+$weatherData = fetchWeather($today);
+$weatherCodeMap = [
+  '0' => '晴れ',
+  '1' => '晴れ',
+  '2' => '晴れ時々くもり',
+  '3' => 'くもり',
+  '45' => '霧',
+  '48' => '霧',
+  '51' => '小雨',
+  '53' => '雨',
+  '55' => '強い雨',
+  '56' => 'みぞれ',
+  '57' => 'みぞれ',
+  '61' => '小雨',
+  '63' => '雨',
+  '65' => '強い雨',
+  '66' => 'みぞれ',
+  '67' => 'みぞれ',
+  '71' => '小雪',
+  '73' => '雪',
+  '75' => '大雪',
+  '77' => '雪',
+  '80' => 'にわか雨',
+  '81' => '雨',
+  '82' => '強いにわか雨',
+  '85' => 'にわか雪',
+  '86' => '雪',
+  '95' => '雷雨',
+  '96' => '雷雨',
+  '99' => '雷雨',
+];
+
+$weatherCode = (string)($weatherData['weather_code'] ?? '');
+$weatherLabel = $weatherCodeMap[$weatherCode] ?? '情報なし';
+$weatherTemp = is_numeric($weatherData['temp_c'] ?? null) ? (string)round((float)$weatherData['temp_c']) . '℃' : '--℃';
+
+function formatMinutesToHours(int $minutes): string {
+  $hours = intdiv($minutes, 60);
+  $mins = $minutes % 60;
+  if ($hours <= 0) {
+    return $mins . '分';
+  }
+  return $hours . '時間' . ($mins > 0 ? ' ' . $mins . '分' : '');
+}
 ?>
 <!doctype html>
 <html lang="ja">
@@ -13,64 +74,95 @@ $u = requireLogin();
 </head>
 <body>
 
-<div class="topbar">
+<div class="topbar dashboard-topbar">
   <div class="topbar-inner">
-    <div class="title">ナインズ農業日誌</div>
-    <div class="actions">
-      <a class="btn ghost" href="password_change.php">PW変更</a>
-      <a class="btn" href="logout.php">ログアウト</a>
+    <a class="dashboard-brand" href="index.php" aria-label="NINE'S DIARY ホーム">
+      <img src="assets/logo.png" alt="NINE'S DIARY" class="dashboard-brand-logo">
+    </a>
+    <nav class="dashboard-nav" aria-label="グローバルナビゲーション">
+      <a class="dashboard-nav-item is-active" href="index.php">ダッシュボード</a>
+      <a class="dashboard-nav-item" href="diary_list.php">作業記録</a>
+      <a class="dashboard-nav-item" href="shipment_list.php">出荷</a>
+      <a class="dashboard-nav-item" href="material_list.php">資材費</a>
+      <a class="dashboard-nav-item" href="pest_list.php">病害虫</a>
+    </nav>
+    <div class="dashboard-user-menu">
+      <span class="dashboard-user-icon" aria-hidden="true">👤</span>
+      <span class="dashboard-user-name"><?=e($u['name'])?></span>
+      <span class="dashboard-user-arrow" aria-hidden="true">▼</span>
+      <div class="dashboard-user-dropdown">
+        <a href="password_change.php">PW変更</a>
+        <a href="logout.php">ログアウト</a>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="container">
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-      <div>
-        <div class="muted">ログイン中</div>
-        <div style="font-size:18px;font-weight:800"><?=e($u['name'])?> <span class="badge"><?=e($u['role'])?></span></div>
-      </div>
-      <a class="btn" href="guide.php">入力ガイド</a>
+<div class="container dashboard-container">
+  <section class="dashboard-heading">
+    <h1 class="dashboard-title">ダッシュボード</h1>
+    <div class="dashboard-meta-row">
+      <p class="dashboard-greeting">こんにちは、<?=e($u['name'])?>さん</p>
+      <p class="dashboard-weather">今日の天気：<?=$weatherTemp?> <span aria-label="天気"><?=$weatherLabel?></span></p>
     </div>
-  </div>
+  </section>
 
-  <div class="grid">
-    <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">日誌</div>
-      <div class="actions">
+  <section class="dashboard-kpi-grid" aria-label="統計">
+    <article class="card dashboard-kpi-card">
+      <p class="dashboard-kpi-label">今日の作業</p>
+      <p class="dashboard-kpi-value"><?=e(formatMinutesToHours($todayMinutes))?></p>
+    </article>
+    <article class="card dashboard-kpi-card">
+      <p class="dashboard-kpi-label">圃場数</p>
+      <p class="dashboard-kpi-value"><?=e((string)$fieldsCount)?> <span class="dashboard-kpi-unit">箇所</span></p>
+    </article>
+    <article class="card dashboard-kpi-card">
+      <p class="dashboard-kpi-label">品目数</p>
+      <p class="dashboard-kpi-value"><?=e((string)$cropsCount)?> <span class="dashboard-kpi-unit">品目</span></p>
+    </article>
+    <article class="card dashboard-kpi-card">
+      <p class="dashboard-kpi-label">今月の作業時間</p>
+      <p class="dashboard-kpi-value"><?=e(formatMinutesToHours($monthMinutes))?></p>
+    </article>
+  </section>
+
+  <section class="grid dashboard-menu-grid" aria-label="メニュー">
+    <div class="card dashboard-menu-card">
+      <div class="dashboard-menu-title">日誌</div>
+      <div class="actions dashboard-menu-actions">
         <a class="btn primary" href="diary_new.php">＋入力</a>
         <a class="btn" href="diary_list.php">一覧</a>
       </div>
     </div>
 
-    <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">出荷</div>
-      <div class="actions">
+    <div class="card dashboard-menu-card">
+      <div class="dashboard-menu-title">出荷</div>
+      <div class="actions dashboard-menu-actions">
         <a class="btn primary" href="shipment_new.php">＋入力</a>
         <a class="btn" href="shipment_list.php">一覧</a>
       </div>
     </div>
 
-    <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">資材費</div>
-      <div class="actions">
+    <div class="card dashboard-menu-card">
+      <div class="dashboard-menu-title">資材費</div>
+      <div class="actions dashboard-menu-actions">
         <a class="btn primary" href="material_new.php">＋入力</a>
         <a class="btn" href="material_list.php">一覧</a>
       </div>
     </div>
 
-    <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">病害虫</div>
-      <div class="actions">
-        <a class="btn primary" href="pest_new.php">＋記録</a>
-        <a class="btn" href="pest_list.php">履歴</a>
+    <div class="card dashboard-menu-card">
+      <div class="dashboard-menu-title">病害虫</div>
+      <div class="actions dashboard-menu-actions">
+        <a class="btn primary" href="pest_new.php">＋入力</a>
+        <a class="btn" href="pest_list.php">一覧</a>
       </div>
     </div>
-  </div>
+  </section>
 
   <?php if (isAdmin($u)): ?>
-    <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">管理者</div>
+    <div class="card dashboard-admin-card">
+      <div class="dashboard-menu-title">管理者</div>
       <div class="actions">
         <a class="btn" href="summary.php">集計</a>
         <a class="btn" href="monthly_report.php">月次レポート</a>
@@ -80,7 +172,7 @@ $u = requireLogin();
     </div>
   <?php endif; ?>
 
-  <p class="muted">畑で使う前提なので、ボタンは大きめ・迷子になりにくい設計にしています。</p>
+  <p class="muted">畑で使う前提で、押しやすい大きさと余白に調整しています。<a href="guide.php">入力ガイド</a></p>
 </div>
 
 </body>
