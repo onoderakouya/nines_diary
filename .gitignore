@@ -1,4 +1,41 @@
-/data/
-/uploads/
+# =========================
+# Database files
+# =========================
 *.sqlite
 *.sqlite3
+*.db
+
+# Data directory
+/data/
+
+# Upload files (user images etc.)
+/uploads/
+
+# =========================
+# Environment files
+# =========================
+.env
+.env.local
+.env.*.local
+
+# =========================
+# OS generated files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# XAMPP / local server temp
+# =========================
+/tmp/

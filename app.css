@@ -266,20 +266,31 @@ body{ padding-top: 0; }
   position:sticky;
   top:0;
   z-index:20;
+<<<<<<< HEAD
   background:linear-gradient(90deg, #2a7440 0%, var(--brand2) 70%);
   border-bottom:0;
   backdrop-filter:none;
   box-shadow:0 2px 10px rgba(16,24,40,.16);
+=======
+  background:var(--brand2);
+  border-bottom:0;
+  backdrop-filter:none;
+>>>>>>> main
 }
 
 .dashboard-topbar .topbar-inner{
   max-width:1200px;
   padding:0 24px;
+<<<<<<< HEAD
   min-height:72px;
+=======
+  min-height:68px;
+>>>>>>> main
   gap:18px;
 }
 
 .dashboard-brand{
+<<<<<<< HEAD
   display:flex;
   align-items:center;
   flex-shrink:0;
@@ -290,6 +301,13 @@ body{ padding-top: 0; }
   width:190px;
   max-width:30vw;
   height:auto;
+=======
+  color:#fff;
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:.04em;
+  white-space:nowrap;
+>>>>>>> main
 }
 
 .dashboard-nav{
@@ -350,11 +368,16 @@ body{ padding-top: 0; }
 .dashboard-user-menu:hover .dashboard-user-dropdown{display:block}
 
 .dashboard-container{
+<<<<<<< HEAD
   --dashboard-text:#374151;
   --dashboard-muted:#4b5563;
   max-width:1200px;
   padding:24px 24px 36px;
   color:var(--dashboard-text);
+=======
+  max-width:1200px;
+  padding:20px 24px 36px;
+>>>>>>> main
 }
 
 .dashboard-heading{
@@ -364,10 +387,16 @@ body{ padding-top: 0; }
 }
 .dashboard-title{
   margin:0;
+<<<<<<< HEAD
   font-size:44px;
   line-height:1.2;
   font-weight:800;
   letter-spacing:.01em;
+=======
+  font-size:46px;
+  line-height:1.2;
+  font-weight:900;
+>>>>>>> main
 }
 .dashboard-meta-row{
   display:flex;
@@ -379,9 +408,14 @@ body{ padding-top: 0; }
 .dashboard-greeting,
 .dashboard-weather{
   margin:0;
+<<<<<<< HEAD
   color:var(--dashboard-muted);
   font-size:24px;
   font-weight:700;
+=======
+  font-size:33px;
+  font-weight:800;
+>>>>>>> main
 }
 
 .dashboard-kpi-grid{
@@ -392,6 +426,7 @@ body{ padding-top: 0; }
 }
 .dashboard-kpi-card{
   margin:0;
+<<<<<<< HEAD
   padding:14px 18px;
   border-radius:14px;
   border-color:#e6e9ee;
@@ -400,15 +435,30 @@ body{ padding-top: 0; }
   margin:0;
   color:var(--dashboard-muted);
   font-size:16px;
+=======
+  padding:12px 18px;
+  border-radius:14px;
+}
+.dashboard-kpi-label{
+  margin:0;
+  font-size:20px;
+>>>>>>> main
   font-weight:700;
 }
 .dashboard-kpi-value{
   margin:6px 0 0;
+<<<<<<< HEAD
   font-size:40px;
   line-height:1.1;
   font-weight:800;
   letter-spacing:.01em;
   color:var(--dashboard-text);
+=======
+  font-size:58px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.02em;
+>>>>>>> main
 }
 .dashboard-kpi-unit{font-size:.55em;font-weight:800}
 
@@ -422,6 +472,7 @@ body{ padding-top: 0; }
   padding:0;
   overflow:hidden;
   border-radius:20px;
+<<<<<<< HEAD
   border-color:#e6e9ee;
 }
 .dashboard-menu-title{
@@ -431,6 +482,15 @@ body{ padding-top: 0; }
   font-weight:800;
   line-height:1.3;
   padding:14px 18px 8px;
+=======
+}
+.dashboard-menu-title{
+  text-align:center;
+  font-size:38px;
+  font-weight:900;
+  line-height:1.3;
+  padding:14px 18px 6px;
+>>>>>>> main
   border-bottom:1px solid var(--line);
 }
 .dashboard-menu-actions{
@@ -440,6 +500,7 @@ body{ padding-top: 0; }
   flex-wrap:nowrap;
 }
 .dashboard-menu-card .btn{
+<<<<<<< HEAD
   min-width:160px;
   min-height:58px;
   font-size:32px;
@@ -447,6 +508,14 @@ body{ padding-top: 0; }
   border:2px solid #374151;
   border-radius:28px;
   transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+=======
+  min-width:170px;
+  min-height:66px;
+  font-size:40px;
+  font-weight:800;
+  border:2px solid #1f2937;
+  border-radius:28px;
+>>>>>>> main
 }
 .dashboard-menu-card .btn.primary{
   border-color:var(--brand);
@@ -454,28 +523,41 @@ body{ padding-top: 0; }
   color:#fff;
 }
 
+<<<<<<< HEAD
 .dashboard-menu-card .btn:hover{
   text-decoration:none;
   transform:translateY(-2px);
   box-shadow:0 8px 18px rgba(15,23,42,.16);
 }
 
+=======
+>>>>>>> main
 .dashboard-admin-card{margin-top:24px}
 
 @media (max-width:1080px){
   .dashboard-topbar .topbar-inner{padding:8px 16px;flex-wrap:wrap}
   .dashboard-nav{order:3;width:100%;overflow:auto;padding-bottom:2px}
   .dashboard-nav-item{padding:10px 8px;border-bottom-width:2px}
+<<<<<<< HEAD
   .dashboard-title{font-size:36px}
   .dashboard-greeting,.dashboard-weather{font-size:20px}
   .dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dashboard-kpi-value{font-size:34px}
   .dashboard-menu-title{font-size:24px}
   .dashboard-menu-card .btn{font-size:26px;min-height:54px;min-width:130px}
+=======
+  .dashboard-title{font-size:38px}
+  .dashboard-greeting,.dashboard-weather{font-size:28px}
+  .dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dashboard-kpi-value{font-size:50px}
+  .dashboard-menu-title{font-size:32px}
+  .dashboard-menu-card .btn{font-size:34px;min-height:60px;min-width:140px}
+>>>>>>> main
 }
 
 @media (max-width:640px){
   .dashboard-container{padding:16px}
+<<<<<<< HEAD
   .dashboard-title{font-size:30px}
   .dashboard-greeting,.dashboard-weather{font-size:18px}
   .dashboard-kpi-grid{grid-template-columns:1fr}
@@ -485,4 +567,15 @@ body{ padding-top: 0; }
   .dashboard-menu-title{font-size:24px}
   .dashboard-menu-actions{flex-wrap:wrap;justify-content:center}
   .dashboard-menu-card .btn{width:100%;font-size:24px}
+=======
+  .dashboard-title{font-size:31px}
+  .dashboard-greeting,.dashboard-weather{font-size:24px}
+  .dashboard-kpi-grid{grid-template-columns:1fr}
+  .dashboard-kpi-label{font-size:18px}
+  .dashboard-kpi-value{font-size:42px}
+  .dashboard-menu-grid{grid-template-columns:1fr}
+  .dashboard-menu-title{font-size:26px}
+  .dashboard-menu-actions{flex-wrap:wrap;justify-content:center}
+  .dashboard-menu-card .btn{width:100%;font-size:30px}
+>>>>>>> main
 }
