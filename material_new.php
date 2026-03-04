@@ -9,8 +9,10 @@ $fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 $err = '';
+$dateValue = date('Y-m-d');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date     = $_POST['date'] ?? '';
+  $dateValue = $date !== '' ? $date : $dateValue;
   $field_id = (int)($_POST['field_id'] ?? 0);
   $crop_id  = (int)($_POST['crop_id'] ?? 0);
 
@@ -58,6 +60,32 @@ exit;
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="app.css">
 <script defer src="app.js"></script>
+<script>
+  function formatWeekdayJa(dateStr){
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('ja-JP', { weekday: 'long' });
+  }
+
+  function updateWeekday(){
+    const input = document.getElementById('date');
+    const label = document.getElementById('date_weekday');
+    if (!input || !label) return;
+    const weekday = formatWeekdayJa(input.value);
+    label.textContent = weekday ? `（${weekday}）` : '';
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('date');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().slice(0, 10);
+    }
+    updateWeekday();
+    dateInput?.addEventListener('input', updateWeekday);
+    dateInput?.addEventListener('change', updateWeekday);
+  });
+</script>
 
 </head>
 <body>
@@ -90,8 +118,8 @@ exit;
       <h2 class="form-section-title card-title">基本情報</h2>
       <div class="form-grid">
         <div class="form-row">
-          <label class="form-label">日付<span class="req">*</span></label>
-          <input class="form-input form-control" type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
+          <label class="form-label">日付<span class="req">*</span> <span id="date_weekday" class="hint"></span></label>
+          <input id="date" class="form-input form-control" type="date" name="date" value="<?=e($dateValue)?>" required>
         </div>
 
         <div class="form-row">

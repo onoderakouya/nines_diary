@@ -15,8 +15,10 @@ $workOptions = [
 ];
 
 $err = '';
+$dateValue = date('Y-m-d');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date      = $_POST['date'] ?? '';
+  $dateValue = $date !== '' ? $date : $dateValue;
   $field_id = (int)($_POST['field_id'] ?? 0);
   $plot     = trim((string)($_POST['plot'] ?? ''));
   $crop_id  = (int)($_POST['crop_id'] ?? 0);
@@ -69,12 +71,37 @@ exit;
 <script defer src="app.js"></script>
 
   <script>
+    function formatWeekdayJa(dateStr){
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T00:00:00');
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('ja-JP', { weekday: 'long' });
+    }
+
+    function updateWeekday(){
+      const input = document.getElementById('date');
+      const label = document.getElementById('date_weekday');
+      if (!input || !label) return;
+      const weekday = formatWeekdayJa(input.value);
+      label.textContent = weekday ? `（${weekday}）` : '';
+    }
+
     function toggleOther(){
       const sel = document.getElementById('work_main');
       const box = document.getElementById('work_other_box');
       box.style.display = (sel.value === 'その他') ? 'block' : 'none';
     }
-    window.addEventListener('DOMContentLoaded', toggleOther);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const dateInput = document.getElementById('date');
+      if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().slice(0, 10);
+      }
+      toggleOther();
+      updateWeekday();
+      dateInput?.addEventListener('input', updateWeekday);
+      dateInput?.addEventListener('change', updateWeekday);
+    });
   </script>
 </head>
 <body>
@@ -103,8 +130,8 @@ exit;
     <div class="card">
       <div class="grid">
         <div>
-          <label>日付<span class="req">*</span></label>
-          <input type="date" name="date" value="<?=e(date('Y-m-d'))?>" required>
+          <label>日付<span class="req">*</span> <span id="date_weekday" class="hint"></span></label>
+          <input id="date" type="date" name="date" value="<?=e($dateValue)?>" required>
         </div>
 
         <div>
