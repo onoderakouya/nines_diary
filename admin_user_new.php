@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 
 $admin = requireAdmin();
 $pdo = db();
@@ -65,6 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </head>
 <body>
+<?php renderGlobalTopbar($admin); ?>
+
   <h1>研修生ユーザー追加（管理者）</h1>
   <p><a href="index.php">←ホーム</a> / <a href="admin_user_list.php">研修生一覧</a></p>
 

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 
 $admin = requireAdmin();
 $pdo = db();
@@ -60,6 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
+<?php renderGlobalTopbar($admin); ?>
+
   <h1>パスワード再発行（管理者）</h1>
   <p><a href="admin_user_list.php">←ユーザー一覧へ</a></p>
 

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 
 $admin = requireAdmin();
 $pdo = db();
@@ -234,6 +235,8 @@ function mmToHM(int $minutes): string {
   </style>
 </head>
 <body>
+<?php renderGlobalTopbar($admin); ?>
+
 <div class="wrap">
   <h1>集計（管理者）</h1>
   <p><a href="index.php">←ホーム</a></p>

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 $u = requireLogin();
 requireAdmin();
 $pdo = db();
@@ -148,6 +149,8 @@ $linkPest     = "pest_list.php?from=".urlencode($from)."&to=".urlencode($to);
   </style>
 </head>
 <body>
+<?php renderGlobalTopbar($u); ?>
+
   <h1>月次レポート <?=e($ym)?></h1>
   <p class="row">
     <a href="index.php">←ホーム</a>

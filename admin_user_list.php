@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 
 $admin = requireAdmin();
 $pdo = db();
@@ -21,6 +22,8 @@ function roleLabel(string $r): string {
 
 </head>
 <body>
+<?php renderGlobalTopbar($admin); ?>
+
   <h1>ユーザー一覧（管理者）</h1>
   <p><a href="index.php">←ホーム</a> / <a href="admin_user_new.php">＋研修生ユーザー追加</a></p>
 

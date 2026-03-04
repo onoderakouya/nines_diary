@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 $u = requireLogin();
 $pdo = db();
 $csrf = csrfToken();
@@ -60,6 +61,8 @@ $csv = "diary_export.php"
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
+<?php renderGlobalTopbar($u); ?>
+
 
 <div class="topbar">
   <div class="topbar-inner">

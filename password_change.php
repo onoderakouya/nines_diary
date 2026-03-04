@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 
 $u = requireLogin();
 $pdo = db();
@@ -56,6 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+<?php renderGlobalTopbar($u); ?>
+
   <h1>パスワード変更</h1>
   <p><a href="index.php">←ホーム</a></p>
 
