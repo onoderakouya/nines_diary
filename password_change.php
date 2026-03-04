@@ -55,42 +55,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="utf-8">
   <title>パスワード変更</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <?php renderGlobalTopbar($u); ?>
 
-  <h1>パスワード変更</h1>
+<div class="container page">
+  <h1 class="form-page-title">パスワード変更</h1>
   <p><a href="index.php">←ホーム</a></p>
 
-  <p style="color:#555">ログイン中：<?=e($u['name'])?>（<?=e($u['email'])?>）</p>
+  <p class="muted">ログイン中：<?=e($u['name'])?>（<?=e($u['email'])?>）</p>
 
   <?php if ($error): ?>
-    <p style="color:red"><?=e($error)?></p>
+    <div class="card error"><?=e($error)?></div>
   <?php endif; ?>
 
   <?php if ($success): ?>
-    <p style="color:green"><?=e($success)?></p>
+    <div class="card" style="border-color:#86efac;background:#f0fdf4;color:#166534"><?=e($success)?></div>
   <?php endif; ?>
 
-  <form method="post" style="max-width:520px">
-    <label>現在のパスワード*<br>
-      <input type="password" name="current_password" required style="width:100%">
-    </label><br><br>
+  <form method="post" class="card form-section">
+    <div class="form-row">
+      <label class="form-label" for="current_password">現在のパスワード*</label>
+      <input class="form-input" type="password" id="current_password" name="current_password" required>
+    </div>
 
-    <label>新しいパスワード*（10文字以上・英字+数字）<br>
-      <input type="password" name="new_password" required style="width:100%">
-    </label><br><br>
+    <div class="form-row section-md">
+      <label class="form-label" for="new_password">新しいパスワード*（10文字以上・英字+数字）</label>
+      <input class="form-input" type="password" id="new_password" name="new_password" required>
+    </div>
 
-    <label>新しいパスワード（確認）*<br>
-      <input type="password" name="new_password2" required style="width:100%">
-    </label><br><br>
+    <div class="form-row section-md">
+      <label class="form-label" for="new_password2">新しいパスワード（確認）*</label>
+      <input class="form-input" type="password" id="new_password2" name="new_password2" required>
+    </div>
 
-    <button type="submit">変更する</button>
+    <div class="form-actions section-md">
+      <button class="btn btn-primary" type="submit">変更する</button>
+    </div>
   </form>
 
-  <hr>
-  <p style="color:#666">
+  <p class="card form-note muted">
     ※仮パスワードでログインしたら、なるべく早めに変更してください。
   </p>
+</div>
 </body>
 </html>
