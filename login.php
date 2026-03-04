@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ログイン｜NINE'S DIARY</title>
   <title>ログイン | ナインズファーム 農業日誌</title>
   <style>
     :root {
@@ -153,6 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
   <main class="login-card">
+    <h1 class="title">NINE'S DIARY</h1>
     <h1 class="title">ナインズファーム 農業日誌</h1>
     <p class="subtitle">作業記録の入力・確認にはログインしてください。</p>
 
