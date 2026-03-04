@@ -118,7 +118,9 @@ function formatMinutesToHours(int $minutes): string {
         <a class="btn" href="diary_list.php">一覧</a>
       </div>
     </div>
+  </section>
 
+  <section class="grid dashboard-menu-grid" aria-label="メニュー補助">
     <div class="card dashboard-menu-card">
       <div class="dashboard-menu-title">🚚 出荷</div>
       <div class="actions dashboard-menu-actions">
