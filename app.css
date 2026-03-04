@@ -78,6 +78,21 @@ a:hover{text-decoration:underline}
 .btn-primary{background:var(--brand);border-color:var(--brand);color:#fff}
 .btn-primary:hover{background:var(--brand2)}
 .btn-secondary{background:var(--card);border-color:var(--line);color:var(--text)}
+.btn-delete{
+  border-color:#fecaca;
+  color:#b91c1c;
+  transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+.btn-delete:hover{
+  background:#fef2f2;
+  border-color:#fca5a5;
+  color:#991b1b;
+  transform:translateY(-1px);
+  box-shadow:0 4px 10px rgba(185,28,28,.18);
+}
+.btn-delete:active{
+  transform:translateY(0);
+}
 
 .card{
   background:var(--card);
