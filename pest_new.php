@@ -6,6 +6,11 @@ $u = requireLogin();
 $pdo = db();
 
 $fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$fieldLabelOrder = ['1-1','1-2','1-3','1-4','1-5','1-6','1-7','1-8','1-9','1-10','2-1','2-2','2-3','2-4','2-5','2-6','2-7','2-8','2-9','2-10','3-1','3-2','3-3','3-4','3-5'];
+foreach ($fields as $idx => &$field) {
+  $field['display_label'] = $fieldLabelOrder[$idx] ?? (string)$field['label'];
+}
+unset($field);
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 // タグ候補（必要なら増やせます）
@@ -157,7 +162,7 @@ exit;
           <select class="form-input form-control" name="field_id" required>
             <option value="">選択</option>
             <?php foreach ($fields as $f): ?>
-              <option value="<?= (int)$f['id'] ?>"><?= e($f['label']) ?></option>
+              <option value="<?= (int)$f['id'] ?>"><?= e((string)$f['display_label']) ?></option>
             <?php endforeach; ?>
           </select>
         </div>
