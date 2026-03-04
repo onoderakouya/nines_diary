@@ -224,7 +224,7 @@ if ($isAdmin) {
           <input type="hidden" name="type" value="shipment">
           <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
           <input type="hidden" name="redirect" value="shipment_list.php">
-          <button class="btn" style="border-color:#fecaca;color:#b91c1c" type="submit">削除</button>
+          <button class="btn btn-delete" type="submit">削除</button>
         </form>
       </div>
     </div>
