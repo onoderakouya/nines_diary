@@ -44,16 +44,56 @@ function renderGlobalTopbar(array $u): void {
         <a class="dashboard-nav-item <?=$isMaterial ? 'is-active' : ''?>" href="material_list.php">資材費</a>
         <a class="dashboard-nav-item <?=$isPest ? 'is-active' : ''?>" href="pest_list.php">病害虫</a>
       </nav>
-      <div class="dashboard-user-menu">
-        <span class="dashboard-user-icon" aria-hidden="true">👤</span>
-        <span class="dashboard-user-name"><?=e($u['name'])?></span>
-        <span class="dashboard-user-arrow" aria-hidden="true">▼</span>
-        <div class="dashboard-user-dropdown">
+      <div class="dashboard-user-menu js-dashboard-user-menu">
+        <button type="button" class="dashboard-user-toggle js-dashboard-user-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="dashboard-user-dropdown">
+          <span class="dashboard-user-icon" aria-hidden="true">👤</span>
+          <span class="dashboard-user-name"><?=e($u['name'])?></span>
+          <span class="dashboard-user-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="dashboard-user-dropdown" id="dashboard-user-dropdown">
           <a href="password_change.php">PW変更</a>
           <a href="logout.php">ログアウト</a>
         </div>
       </div>
     </div>
   </div>
+  <script>
+    (function () {
+      var menu = document.querySelector('.js-dashboard-user-menu');
+      var toggle = document.querySelector('.js-dashboard-user-toggle');
+      if (!menu || !toggle) return;
+
+      function closeMenu() {
+        menu.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+
+      function openMenu() {
+        menu.classList.add('is-open');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+
+      toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (menu.classList.contains('is-open')) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!menu.contains(e.target)) closeMenu();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeMenu();
+      });
+
+      menu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', closeMenu);
+      });
+    })();
+  </script>
   <?php
 }
