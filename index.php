@@ -79,12 +79,16 @@ function formatMinutesToHours(int $minutes): string {
 
 
 <div class="container dashboard-container">
-  <section class="dashboard-heading">
-    <h1 class="dashboard-title">ダッシュボード</h1>
-    <div class="dashboard-meta-row">
-      <p class="dashboard-greeting">こんにちは、<?=e($u['name'])?>さん</p>
-      <p class="dashboard-weather">今日の天気：<?=$weatherTemp?> <span aria-label="天気"><?=$weatherLabel?></span></p>
+  <section class="dashboard-hero card">
+    <div class="dashboard-hero-content">
+      <p class="dashboard-badge">Daily Farming Hub</p>
+      <h1 class="dashboard-title">ダッシュボード</h1>
+      <div class="dashboard-meta-row">
+        <p class="dashboard-greeting">こんにちは、<?=e($u['name'])?>さん</p>
+        <p class="dashboard-weather">今日の天気：<?=$weatherTemp?> <span aria-label="天気"><?=$weatherLabel?></span></p>
+      </div>
     </div>
+    <div class="dashboard-hero-glow" aria-hidden="true"></div>
   </section>
 
   <section class="dashboard-kpi-grid" aria-label="統計">
@@ -106,9 +110,9 @@ function formatMinutesToHours(int $minutes): string {
     </article>
   </section>
 
-  <section class="grid dashboard-menu-grid" aria-label="メニュー">
+  <section class="dashboard-menu-grid" aria-label="メニュー">
     <div class="card dashboard-menu-card">
-      <div class="dashboard-menu-title">日誌</div>
+      <div class="dashboard-menu-title">🌱 日誌</div>
       <div class="actions dashboard-menu-actions">
         <a class="btn primary" href="diary_new.php">＋入力</a>
         <a class="btn" href="diary_list.php">一覧</a>
@@ -116,7 +120,7 @@ function formatMinutesToHours(int $minutes): string {
     </div>
 
     <div class="card dashboard-menu-card">
-      <div class="dashboard-menu-title">出荷</div>
+      <div class="dashboard-menu-title">🚚 出荷</div>
       <div class="actions dashboard-menu-actions">
         <a class="btn primary" href="shipment_new.php">＋入力</a>
         <a class="btn" href="shipment_list.php">一覧</a>
@@ -124,7 +128,7 @@ function formatMinutesToHours(int $minutes): string {
     </div>
 
     <div class="card dashboard-menu-card">
-      <div class="dashboard-menu-title">資材費</div>
+      <div class="dashboard-menu-title">🧪 資材費</div>
       <div class="actions dashboard-menu-actions">
         <a class="btn primary" href="material_new.php">＋入力</a>
         <a class="btn" href="material_list.php">一覧</a>
@@ -132,7 +136,7 @@ function formatMinutesToHours(int $minutes): string {
     </div>
 
     <div class="card dashboard-menu-card">
-      <div class="dashboard-menu-title">病害虫</div>
+      <div class="dashboard-menu-title">🐛 病害虫</div>
       <div class="actions dashboard-menu-actions">
         <a class="btn primary" href="pest_new.php">＋入力</a>
         <a class="btn" href="pest_list.php">一覧</a>
