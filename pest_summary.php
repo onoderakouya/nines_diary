@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 
-requireAdmin();
+$u = requireAdmin();
 $pdo = db();
 
 // フィルタ
@@ -138,6 +139,8 @@ function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'
   </style>
 </head>
 <body>
+<?php renderGlobalTopbar($u); ?>
+
 <div class="wrap">
   <h1>病害虫集計（管理者）</h1>
   <p><a href="index.php">←ホーム</a> / <a href="pest_list.php">病害虫履歴</a></p>

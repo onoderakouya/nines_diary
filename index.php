@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 $pdo = db();
 $u = requireLogin();
 
@@ -74,30 +75,8 @@ function formatMinutesToHours(int $minutes): string {
 </head>
 <body>
 
-<div class="topbar dashboard-topbar">
-  <div class="topbar-inner">
-    <a class="dashboard-brand" href="index.php" aria-label="NINE'S DIARY ホーム">
-      <img src="assets/logo.png" alt="NINE'S DIARY" class="dashboard-brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';">
-      <span class="dashboard-brand-fallback" style="display:none;">NINE'S DIARY</span>
-    </a>
-    <nav class="dashboard-nav" aria-label="グローバルナビゲーション">
-      <a class="dashboard-nav-item is-active" href="index.php">ダッシュボード</a>
-      <a class="dashboard-nav-item" href="diary_list.php">作業記録</a>
-      <a class="dashboard-nav-item" href="shipment_list.php">出荷</a>
-      <a class="dashboard-nav-item" href="material_list.php">資材費</a>
-      <a class="dashboard-nav-item" href="pest_list.php">病害虫</a>
-    </nav>
-    <div class="dashboard-user-menu">
-      <span class="dashboard-user-icon" aria-hidden="true">👤</span>
-      <span class="dashboard-user-name"><?=e($u['name'])?></span>
-      <span class="dashboard-user-arrow" aria-hidden="true">▼</span>
-      <div class="dashboard-user-dropdown">
-        <a href="password_change.php">PW変更</a>
-        <a href="logout.php">ログアウト</a>
-      </div>
-    </div>
-  </div>
-</div>
+<?php renderGlobalTopbar($u); ?>
+
 
 <div class="container dashboard-container">
   <section class="dashboard-heading">

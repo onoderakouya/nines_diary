@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 $u = requireLogin();
 $pdo = db();
 
@@ -109,6 +110,8 @@ $csrf = csrfToken();
   <script defer src="app.js"></script>
 </head>
 <body>
+<?php renderGlobalTopbar($u); ?>
+
 <div class="topbar">
   <div class="topbar-inner">
     <div class="title">病害虫編集</div>

@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ui.php';
 
-requireAdmin();
+$u = requireAdmin();
 $pdo = db();
 
 $from  = trim((string)($_GET['from'] ?? ''));
@@ -87,6 +88,8 @@ function unitLabel(string $u): string { return $u === 'box' ? '箱' : 'kg'; }
   </style>
 </head>
 <body>
+<?php renderGlobalTopbar($u); ?>
+
   <h1>出荷集計（管理者）</h1>
   <p><a href="index.php">←ホーム</a> / <a href="shipment_list.php">出荷一覧</a></p>
 
