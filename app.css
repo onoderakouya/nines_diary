@@ -447,6 +447,8 @@ body{ padding-top: 0; }
 }
 
 .dashboard-admin-card{margin-top:18px}
+
+
 @media (max-width:900px){
   .dashboard-menu-card:first-child{grid-column:1 / -1}
 }
