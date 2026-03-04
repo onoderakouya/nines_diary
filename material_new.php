@@ -5,7 +5,7 @@ require_once __DIR__ . '/ui.php';
 $u = requireLogin();
 $pdo = db();
 
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY id")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 $err = '';

@@ -89,6 +89,30 @@ function ensureDatabaseInitialized(PDO $pdo): void {
   initializeDatabase($pdo);
 }
 
+
+function ensureStandardFields(PDO $pdo): void {
+  $labels = [
+    1 => '1-1', 2 => '1-2', 3 => '1-3', 4 => '1-4', 5 => '1-5',
+    6 => '1-6', 7 => '1-7', 8 => '1-8', 9 => '1-9', 10 => '1-10',
+    11 => '2-1', 12 => '2-2', 13 => '2-3', 14 => '2-4', 15 => '2-5',
+    16 => '2-6', 17 => '2-7', 18 => '2-8', 19 => '2-9', 20 => '2-10',
+    21 => '3-1', 22 => '3-2', 23 => '3-3', 24 => '3-4', 25 => '3-5',
+  ];
+
+  $stmt = $pdo->prepare(
+    'INSERT INTO fields (id, label, created_at) VALUES (:id, :label, :created_at) '
+    . 'ON CONFLICT(id) DO UPDATE SET label = excluded.label'
+  );
+
+  foreach ($labels as $id => $label) {
+    $stmt->execute([
+      ':id' => $id,
+      ':label' => $label,
+      ':created_at' => date('c'),
+    ]);
+  }
+}
+
 function db(): PDO {
   static $pdo = null;
   if ($pdo) return $pdo;
@@ -104,5 +128,6 @@ function db(): PDO {
   // 外部キー有効化
   $pdo->exec('PRAGMA foreign_keys = ON;');
   ensureDatabaseInitialized($pdo);
+  ensureStandardFields($pdo);
   return $pdo;
 }
