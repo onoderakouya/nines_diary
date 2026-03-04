@@ -110,7 +110,7 @@ function formatMinutesToHours(int $minutes): string {
     </article>
   </section>
 
-  <section class="grid dashboard-menu-grid" aria-label="メニュー">
+  <section class="dashboard-menu-grid" aria-label="メニュー">
     <div class="card dashboard-menu-card">
       <div class="dashboard-menu-title">🌱 日誌</div>
       <div class="actions dashboard-menu-actions">
