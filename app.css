@@ -414,6 +414,12 @@ body{ padding-top: 0; }
 
 .dashboard-submenu-grid{
   display:grid;
+.dashboard-diary-row{
+  margin:0 0 14px;
+}
+
+.dashboard-submenu-grid{
+  display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:14px;
   margin:0;
