@@ -407,6 +407,14 @@ body{ padding-top: 0; }
 
 .dashboard-diary-grid{
   display:grid;
+  grid-template-columns:minmax(0,1fr) !important;
+  gap:14px;
+  margin:0 0 14px;
+}
+
+.dashboard-submenu-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   grid-template-columns:minmax(0,1fr);
   gap:14px;
   margin:0 0 14px;
