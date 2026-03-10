@@ -415,6 +415,24 @@ body{ padding-top: 0; }
 .dashboard-submenu-grid{
   display:grid !important;
   grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+
+.dashboard-submenu-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+  margin:0 0 14px;
+}
+
+.dashboard-submenu-grid{
+  display:grid;
+.dashboard-diary-row{
+  margin:0 0 14px;
+}
+
+.dashboard-submenu-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:14px;
   margin:0;
 }
@@ -460,6 +478,7 @@ body{ padding-top: 0; }
   .dashboard-nav{order:3;width:100%;overflow:auto;padding-bottom:2px}
   .dashboard-nav-item{padding:10px 8px;border-bottom-width:2px}
   .dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dashboard-submenu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 }
 
@@ -470,6 +489,7 @@ body{ padding-top: 0; }
   .dashboard-kpi-grid{grid-template-columns:1fr}
   .dashboard-submenu-grid{grid-template-columns:1fr !important}
   .dashboard-kpi-value{font-size:28px}
+  .dashboard-submenu-grid{grid-template-columns:1fr}
   .dashboard-menu-title{font-size:22px}
   .dashboard-menu-actions .btn{width:100%}
 }
