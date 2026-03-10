@@ -34,7 +34,7 @@ function renderGlobalTopbar(array $u): void {
   <div class="topbar dashboard-topbar">
     <div class="topbar-inner">
       <a class="dashboard-brand" href="index.php" aria-label="NINE'S DIARY ホーム">
-        <img src="assets/logo.png" alt="NINE'S DIARY" class="dashboard-brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';">
+        <img src="assets/logo_top.png" alt="NINE'S DIARY" class="dashboard-brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';">
         <span class="dashboard-brand-fallback" style="display:none;">NINE'S DIARY</span>
       </a>
       <nav class="dashboard-nav" aria-label="グローバルナビゲーション">
