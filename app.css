@@ -405,6 +405,15 @@ body{ padding-top: 0; }
 }
 .dashboard-kpi-unit{font-size:.52em;color:#4b5563}
 
+.dashboard-diary-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+  margin:0 0 14px;
+}
+
+.dashboard-submenu-grid{
+  display:grid;
 .dashboard-diary-row{
   margin:0 0 14px;
 }
@@ -415,6 +424,8 @@ body{ padding-top: 0; }
   gap:14px;
   margin:0;
 }
+.dashboard-submenu-grid > .dashboard-menu-card{min-width:0}
+
 .dashboard-menu-card{
   margin:0;
   padding:16px;
