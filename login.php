@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ログイン｜NINE'S DIARY</title>
   <title>ログイン | ナインズファーム 農業日誌</title>
   <style>
     :root {
@@ -39,10 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       --accent: #2f8f6b;
       --accent-dark: #256f54;
       --text: #20312a;
-      --muted: #5b6a63;
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --border: rgba(47, 143, 107, 0.18);
-      --shadow: 0 20px 55px rgba(34, 83, 66, 0.18);
+      --muted: #666666;
+      --title-text: #3f3f3f;
+      --card-bg: #f4f4f4;
+      --border: rgba(0, 0, 0, 0.12);
+      --shadow: 0 14px 24px rgba(0, 0, 0, 0.22);
       --error-bg: #ffe9e9;
       --error-text: #b53b3b;
     }
@@ -66,26 +66,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .login-card {
-      width: min(420px, 100%);
+      width: min(360px, 100%);
       background: var(--card-bg);
-      backdrop-filter: blur(12px);
       border: 1px solid var(--border);
       border-radius: 22px;
       box-shadow: var(--shadow);
-      padding: 34px 28px 30px;
+      padding: 20px 18px 24px;
+    }
+
+    .logo {
+      display: block;
+      width: min(232px, 94%);
+      margin: 0 auto 6px;
+      height: auto;
     }
 
     .title {
       margin: 0;
-      font-size: clamp(1.35rem, 2.6vw, 1.8rem);
-      font-weight: 700;
-      letter-spacing: 0.03em;
+      text-align: center;
+      font-size: clamp(1.95rem, 2.4vw, 2.1rem);
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--title-text);
+      font-family: "プレゼンス体", "Hiragino Mincho ProN", "Yu Mincho", serif;
     }
 
     .subtitle {
-      margin: 8px 0 26px;
+      margin: 8px 0 20px;
+      text-align: center;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      font-family: "プレゼンス体", "Hiragino Mincho ProN", "Yu Mincho", serif;
     }
 
     .error {
@@ -99,22 +110,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .field {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .field label {
       display: block;
       margin-bottom: 7px;
       font-size: 0.88rem;
-      color: var(--muted);
+      color: #3f3f3f;
       font-weight: 600;
     }
 
     .field input {
       width: 100%;
-      border: 1px solid #d6e4dc;
-      border-radius: 12px;
-      padding: 12px 14px;
+      border: 1px solid #d5d5d5;
+      border-radius: 4px;
+      padding: 10px 12px;
       font-size: 1rem;
       background: #ffffff;
       color: var(--text);
@@ -124,39 +135,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .field input:focus {
       border-color: rgba(47, 143, 107, 0.7);
-      box-shadow: 0 0 0 4px rgba(47, 143, 107, 0.16);
+      box-shadow: 0 0 0 3px rgba(47, 143, 107, 0.15);
     }
 
     .button {
       width: 100%;
       margin-top: 8px;
-      border: 0;
+      border: 1px solid rgba(255, 255, 255, 0.24);
       border-radius: 12px;
       padding: 12px 16px;
-      font-size: 1rem;
+      font-size: 1.65rem;
       font-weight: 700;
+      letter-spacing: 0.08em;
       color: #fff;
-      background: linear-gradient(135deg, var(--accent), #4bbd8f);
+      background: linear-gradient(115deg, #2c9e76 0%, #34b486 46%, #4fd0a3 100%);
+      background-size: 180% 180%;
       cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.2s ease;
-      box-shadow: 0 10px 22px rgba(47, 143, 107, 0.28);
+      box-shadow:
+        0 10px 18px rgba(40, 120, 92, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      font-family: "プレゼンス体", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.1;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.35s ease;
     }
 
     .button:hover {
       transform: translateY(-1px);
-      background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+      background-position: 100% 50%;
+      box-shadow:
+        0 13px 20px rgba(40, 120, 92, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.14);
     }
 
     .button:active {
       transform: translateY(0);
+      box-shadow:
+        0 6px 12px rgba(40, 120, 92, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
     }
   </style>
 </head>
 <body>
   <main class="login-card">
-    <h1 class="title">NINE'S DIARY</h1>
+    <img class="logo" src="assets/logo.png" alt="NINE'S DIARY ロゴ">
     <h1 class="title">ナインズファーム 農業日誌</h1>
-    <p class="subtitle">作業記録の入力・確認にはログインしてください。</p>
+    <p class="subtitle">作業記録の入力・確認はログインしてください</p>
 
     <?php if ($error): ?>
       <p class="error"><?= e($error) ?></p>
