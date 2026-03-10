@@ -140,6 +140,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .button {
       width: 100%;
+      margin-top: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #fff;
+      background: linear-gradient(115deg, #2c9e76 0%, #34b486 46%, #4fd0a3 100%);
+      background-size: 180% 180%;
+      cursor: pointer;
+      box-shadow:
+        0 10px 18px rgba(40, 120, 92, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      font-family: "プレゼンス体", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.1;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.35s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      background-position: 100% 50%;
+      box-shadow:
+        0 13px 20px rgba(40, 120, 92, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.14);
+    }
+
+    .button:active {
+      transform: translateY(0);
+      box-shadow:
+        0 6px 12px rgba(40, 120, 92, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
       margin-top: 6px;
       border: 0;
       border-radius: 4px;
