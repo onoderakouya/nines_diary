@@ -175,6 +175,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       box-shadow:
         0 6px 12px rgba(40, 120, 92, 0.28),
         inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      margin-top: 6px;
+      border: 0;
+      border-radius: 4px;
+      padding: 10px 16px;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff;
+      background: linear-gradient(90deg, var(--accent), #45c59a);
+      cursor: pointer;
+      box-shadow: 0 3px 7px rgba(0, 0, 0, 0.35);
+      font-family: "プレゼンス体", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.1;
+    }
+
+    .button:hover {
+      background: linear-gradient(90deg, var(--accent-dark), var(--accent));
     }
   </style>
 </head>
