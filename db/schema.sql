@@ -117,6 +117,7 @@ BEGIN
 END;
 
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_user_field_names_user_id ON user_field_names(user_id, name);
 CREATE INDEX IF NOT EXISTS idx_diary_entries_user_date ON diary_entries(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_diary_entries_field_crop ON diary_entries(field_id, crop_id);
 CREATE INDEX IF NOT EXISTS idx_diary_entries_task_id ON diary_entries(task_id);
