@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/ui.php';
+
 $u = requireLogin();
 $pdo = db();
 
@@ -11,67 +12,66 @@ foreach ($fields as $idx => &$field) {
   $field['display_label'] = $fieldLabelOrder[$idx] ?? (string)$field['label'];
 }
 unset($field);
-$crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
+
+$crops = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 $savedPlotNames = [];
 $savePlotNameStmt = null;
-$hasUserFieldNames = (bool)$pdo->query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_field_names'")->fetchColumn();
+
+$hasUserFieldNames = (bool)$pdo->query(
+  "SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_field_names'"
+)->fetchColumn();
+
 if ($hasUserFieldNames) {
-  $plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
+  $plotNameOptions = $pdo->prepare(
+    "SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name"
+  );
   $plotNameOptions->execute([':uid' => $u['id']]);
   $savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
 
-  $savePlotNameStmt = $pdo->prepare("
-    INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
-    VALUES (:uid,:name,:created_at)
-  ");
+  $savePlotNameStmt = $pdo->prepare(
+    "INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
+     VALUES (:uid,:name,:created_at)"
+  );
 }
-
-$plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
-$plotNameOptions->execute([':uid' => $u['id']]);
-$savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
-
-$savePlotNameStmt = $pdo->prepare("
-  INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
-  VALUES (:uid,:name,:created_at)
-");
 
 $err = '';
 $dateValue = date('Y-m-d');
 $plotValue = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $date     = $_POST['date'] ?? '';
+  $date = $_POST['date'] ?? '';
   $dateValue = $date !== '' ? $date : $dateValue;
   $field_id = (int)($_POST['field_id'] ?? 0);
-  $plot     = trim((string)($_POST['plot'] ?? ''));
+  $plot = trim((string)($_POST['plot'] ?? ''));
   $plotValue = $plot;
-  $crop_id  = (int)($_POST['crop_id'] ?? 0);
+  $crop_id = (int)($_POST['crop_id'] ?? 0);
 
   $quantity = (float)($_POST['quantity'] ?? 0);
-  $unit     = (string)($_POST['unit'] ?? '');
-  $note     = trim((string)($_POST['note'] ?? ''));
+  $unit = (string)($_POST['unit'] ?? '');
+  $note = trim((string)($_POST['note'] ?? ''));
 
-  if (!$date || !$field_id || !$crop_id || $quantity <= 0 || !in_array($unit, ['box','kg'], true)) {
+  if (!$date || !$field_id || !$crop_id || $quantity <= 0 || !in_array($unit, ['box', 'kg'], true)) {
     $err = '必須項目を入力してください（数量は0より大きく、単位は箱/kg）';
   } else {
     $st = $pdo->prepare("
       INSERT INTO shipments (user_id,date,field_id,plot,crop_id,quantity,unit,note,created_at)
       VALUES (:user_id,:date,:field_id,:plot,:crop_id,:quantity,:unit,:note,:created_at)
     ");
+
     $st->execute([
-      ':user_id'=>$u['id'],
-      ':date'=>$date,
-      ':field_id'=>$field_id,
-      ':plot'=>($plot!==''?$plot:null),
-      ':crop_id'=>$crop_id,
-      ':quantity'=>$quantity,
-      ':unit'=>$unit,
-      ':note'=>($note!==''?$note:null),
-      ':created_at'=>date('c'),
+      ':user_id' => $u['id'],
+      ':date' => $date,
+      ':field_id' => $field_id,
+      ':plot' => ($plot !== '' ? $plot : null),
+      ':crop_id' => $crop_id,
+      ':quantity' => $quantity,
+      ':unit' => $unit,
+      ':note' => ($note !== '' ? $note : null),
+      ':created_at' => date('c'),
     ]);
 
     if ($plot !== '' && $savePlotNameStmt !== null) {
-    if ($plot !== '') {
       $savePlotNameStmt->execute([
         ':uid' => $u['id'],
         ':name' => $plot,
@@ -81,9 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $savedPlotNames = array_values(array_unique($savedPlotNames));
       sort($savedPlotNames, SORT_STRING);
     }
-header('Location: shipment_list.php?toast=' . rawurlencode('保存しました'));
-exit;
 
+    header('Location: shipment_list.php?toast=' . rawurlencode('保存しました'));
+    exit;
   }
 }
 ?>
@@ -93,39 +93,37 @@ exit;
   <meta charset="utf-8">
   <title>出荷入力</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="app.css">
-<script defer src="app.js"></script>
-<script>
-  function formatWeekdayJa(dateStr){
-    if (!dateStr) return '';
-    const d = new Date(dateStr + 'T00:00:00');
-    if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('ja-JP', { weekday: 'long' });
-  }
-
-  function updateWeekday(){
-    const input = document.getElementById('date');
-    const label = document.getElementById('date_weekday');
-    if (!input || !label) return;
-    const weekday = formatWeekdayJa(input.value);
-    label.textContent = weekday ? `（${weekday}）` : '';
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const dateInput = document.getElementById('date');
-    if (dateInput && !dateInput.value) {
-      dateInput.value = new Date().toISOString().slice(0, 10);
+  <link rel="stylesheet" href="app.css">
+  <script defer src="app.js"></script>
+  <script>
+    function formatWeekdayJa(dateStr){
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T00:00:00');
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('ja-JP', { weekday: 'long' });
     }
-    updateWeekday();
-    dateInput?.addEventListener('input', updateWeekday);
-    dateInput?.addEventListener('change', updateWeekday);
-  });
-</script>
 
+    function updateWeekday(){
+      const input = document.getElementById('date');
+      const label = document.getElementById('date_weekday');
+      if (!input || !label) return;
+      const weekday = formatWeekdayJa(input.value);
+      label.textContent = weekday ? `（${weekday}）` : '';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const dateInput = document.getElementById('date');
+      if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().slice(0, 10);
+      }
+      updateWeekday();
+      dateInput?.addEventListener('input', updateWeekday);
+      dateInput?.addEventListener('change', updateWeekday);
+    });
+  </script>
 </head>
 <body>
 <?php renderGlobalTopbar($u); ?>
-
 
 <div class="topbar">
   <div class="topbar-inner">
@@ -143,7 +141,7 @@ exit;
 
   <?php if ($err): ?>
     <div class="card form-section error-message error-summary">
-      <?=e($err)?>
+      <?= e($err) ?>
     </div>
   <?php endif; ?>
 
@@ -153,7 +151,7 @@ exit;
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">日付<span class="req">*</span> <span id="date_weekday" class="hint"></span></label>
-          <input id="date" class="form-input form-control" type="date" name="date" value="<?=e($dateValue)?>" required>
+          <input id="date" class="form-input form-control" type="date" name="date" value="<?= e($dateValue) ?>" required>
         </div>
 
         <div class="form-row">
@@ -168,7 +166,7 @@ exit;
 
         <div class="form-row">
           <label class="form-label">区画（任意）</label>
-          <input class="form-input form-control" name="plot" list="saved_plot_names" value="<?=e($plotValue)?>" placeholder="例：区画1">
+          <input class="form-input form-control" name="plot" list="saved_plot_names" value="<?= e($plotValue) ?>" placeholder="例：区画1">
           <div class="hint help-text">※自由入力（過去に使った圃場名は候補表示されます）</div>
           <datalist id="saved_plot_names">
             <?php foreach ($savedPlotNames as $name): ?>
