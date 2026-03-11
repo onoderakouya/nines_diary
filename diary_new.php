@@ -11,7 +11,7 @@ foreach ($fields as $idx => &$field) {
   $field['display_label'] = $fieldLabelOrder[$idx] ?? (string)$field['label'];
 }
 unset($field);
-$crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
+$crops = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 $workOptions = [
   '育苗','定植','潅水','整枝','誘引','収穫','農薬散布','耕作','追肥',
@@ -19,50 +19,74 @@ $workOptions = [
   '受粉処理','抜根','圃場の片付け','その他'
 ];
 
+$savedPlotNames = [];
+$savePlotNameStmt = null;
+$hasUserFieldNames = (bool)$pdo->query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_field_names'")->fetchColumn();
+if ($hasUserFieldNames) {
+  $plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
+  $plotNameOptions->execute([':uid' => $u['id']]);
+  $savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
+
+  $savePlotNameStmt = $pdo->prepare(
+    "INSERT OR IGNORE INTO user_field_names (user_id,name,created_at) VALUES (:uid,:name,:created_at)"
+  );
+}
+
 $err = '';
 $dateValue = date('Y-m-d');
+$plotValue = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $date      = $_POST['date'] ?? '';
+  $date = $_POST['date'] ?? '';
   $dateValue = $date !== '' ? $date : $dateValue;
   $field_id = (int)($_POST['field_id'] ?? 0);
-  $plot     = trim((string)($_POST['plot'] ?? ''));
-  $crop_id  = (int)($_POST['crop_id'] ?? 0);
+  $plot = trim((string)($_POST['plot'] ?? ''));
+  $plotValue = $plot;
+  $crop_id = (int)($_POST['crop_id'] ?? 0);
 
-  $work_main  = trim((string)($_POST['work_main'] ?? ''));
+  $work_main = trim((string)($_POST['work_main'] ?? ''));
   $work_other = trim((string)($_POST['work_other'] ?? ''));
 
   $minutes = (int)($_POST['minutes'] ?? 0);
   $weather = trim((string)($_POST['weather'] ?? ''));
-  $temp_c  = $_POST['temp_c'] === '' ? null : (float)$_POST['temp_c'];
-  $memo    = trim((string)($_POST['memo'] ?? ''));
+  $temp_c = $_POST['temp_c'] === '' ? null : (float)$_POST['temp_c'];
+  $memo = trim((string)($_POST['memo'] ?? ''));
 
   $work_content = ($work_main === 'その他') ? $work_other : $work_main;
 
   if (!$date || !$field_id || !$crop_id || $work_content === '' || $minutes <= 0) {
     $err = '必須項目を入力してください（作業時間は1分以上）';
   } else {
-    $stmt = $pdo->prepare("
-      INSERT INTO diary_entries
-      (user_id,date,field_id,plot,crop_id,work_content,minutes,weather,temp_c,memo,created_at)
-      VALUES
-      (:user_id,:date,:field_id,:plot,:crop_id,:work_content,:minutes,:weather,:temp_c,:memo,:created_at)
-    ");
+    $stmt = $pdo->prepare(
+      "INSERT INTO diary_entries (user_id,date,field_id,plot,crop_id,work_content,minutes,weather,temp_c,memo,created_at)
+       VALUES (:user_id,:date,:field_id,:plot,:crop_id,:work_content,:minutes,:weather,:temp_c,:memo,:created_at)"
+    );
     $stmt->execute([
-      ':user_id'=>$u['id'],
-      ':date'=>$date,
-      ':field_id'=>$field_id,
-      ':plot'=>($plot!==''?$plot:null),
-      ':crop_id'=>$crop_id,
-      ':work_content'=>$work_content,
-      ':minutes'=>$minutes,
-      ':weather'=>$weather?:null,
-      ':temp_c'=>$temp_c,
-      ':memo'=>$memo?:null,
-      ':created_at'=>date('c'),
+      ':user_id' => $u['id'],
+      ':date' => $date,
+      ':field_id' => $field_id,
+      ':plot' => ($plot !== '' ? $plot : null),
+      ':crop_id' => $crop_id,
+      ':work_content' => $work_content,
+      ':minutes' => $minutes,
+      ':weather' => ($weather !== '' ? $weather : null),
+      ':temp_c' => $temp_c,
+      ':memo' => ($memo !== '' ? $memo : null),
+      ':created_at' => date('c'),
     ]);
-header('Location: diary_list.php?toast=' . rawurlencode('保存しました'));
-exit;
 
+    if ($plot !== '' && $savePlotNameStmt !== null) {
+      $savePlotNameStmt->execute([
+        ':uid' => $u['id'],
+        ':name' => $plot,
+        ':created_at' => date('c'),
+      ]);
+      $savedPlotNames[] = $plot;
+      $savedPlotNames = array_values(array_unique($savedPlotNames));
+      sort($savedPlotNames, SORT_STRING);
+    }
+
+    header('Location: diary_list.php?toast=' . rawurlencode('保存しました'));
+    exit;
   }
 }
 ?>
@@ -151,8 +175,13 @@ exit;
 
         <div>
           <label>区画（任意）</label>
-          <input name="plot" placeholder="例：区画1">
-          <div class="hint">※自由入力（表記は揃えるのがおすすめ）</div>
+          <input name="plot" list="saved_plot_names" value="<?=e($plotValue)?>" placeholder="例：区画1">
+          <div class="hint">※自由入力（過去に使った圃場名は候補表示されます）</div>
+          <datalist id="saved_plot_names">
+            <?php foreach ($savedPlotNames as $name): ?>
+              <option value="<?= e((string)$name) ?>"></option>
+            <?php endforeach; ?>
+          </datalist>
         </div>
 
         <div>
