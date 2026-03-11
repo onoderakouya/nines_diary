@@ -15,7 +15,7 @@ if (!is_dir($dataDir)) {
 }
 
 $pdo = db();
-$requiredTables = ['users', 'fields', 'crops', 'tasks', 'diary_entries', 'materials', 'pests', 'shipments'];
+$requiredTables = ['users', 'fields', 'user_field_names', 'crops', 'tasks', 'diary_entries', 'materials', 'pests', 'shipments'];
 $existsStmt = $pdo->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = :name");
 
 $missingBefore = [];
