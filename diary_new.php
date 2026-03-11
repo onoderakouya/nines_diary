@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/ui.php';
+
 $u = requireLogin();
 $pdo = db();
 
@@ -11,6 +12,7 @@ foreach ($fields as $idx => &$field) {
   $field['display_label'] = $fieldLabelOrder[$idx] ?? (string)$field['label'];
 }
 unset($field);
+
 $crops = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 $workOptions = [
@@ -21,35 +23,28 @@ $workOptions = [
 
 $savedPlotNames = [];
 $savePlotNameStmt = null;
-$hasUserFieldNames = (bool)$pdo->query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_field_names'")->fetchColumn();
+
+$hasUserFieldNames = (bool)$pdo->query(
+  "SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_field_names'"
+)->fetchColumn();
+
 if ($hasUserFieldNames) {
-  $plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
+  $plotNameOptions = $pdo->prepare(
+    "SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name"
+  );
   $plotNameOptions->execute([':uid' => $u['id']]);
   $savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
 
   $savePlotNameStmt = $pdo->prepare(
-    "INSERT OR IGNORE INTO user_field_names (user_id,name,created_at) VALUES (:uid,:name,:created_at)"
+    "INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
+     VALUES (:uid,:name,:created_at)"
   );
 }
-
-  $savePlotNameStmt = $pdo->prepare("
-    INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
-    VALUES (:uid,:name,:created_at)
-  ");
-}
-
-$plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
-$plotNameOptions->execute([':uid' => $u['id']]);
-$savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
-
-$savePlotNameStmt = $pdo->prepare("
-  INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
-  VALUES (:uid,:name,:created_at)
-");
 
 $err = '';
 $dateValue = date('Y-m-d');
 $plotValue = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date = $_POST['date'] ?? '';
   $dateValue = $date !== '' ? $date : $dateValue;
@@ -63,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $minutes = (int)($_POST['minutes'] ?? 0);
   $weather = trim((string)($_POST['weather'] ?? ''));
-  $temp_c = $_POST['temp_c'] === '' ? null : (float)$_POST['temp_c'];
+  $temp_c = ($_POST['temp_c'] ?? '') === '' ? null : (float)$_POST['temp_c'];
   $memo = trim((string)($_POST['memo'] ?? ''));
 
   $work_content = ($work_main === 'その他') ? $work_other : $work_main;
@@ -75,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       "INSERT INTO diary_entries (user_id,date,field_id,plot,crop_id,work_content,minutes,weather,temp_c,memo,created_at)
        VALUES (:user_id,:date,:field_id,:plot,:crop_id,:work_content,:minutes,:weather,:temp_c,:memo,:created_at)"
     );
+
     $stmt->execute([
       ':user_id' => $u['id'],
       ':date' => $date,
@@ -88,21 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       ':memo' => ($memo !== '' ? $memo : null),
       ':created_at' => date('c'),
     ]);
-
-    if ($plot !== '' && $savePlotNameStmt !== null) {
-
-    if ($plot !== '') {
-      $savePlotNameStmt->execute([
-        ':uid' => $u['id'],
-        ':name' => $plot,
-        ':created_at' => date('c'),
-      ]);
-      $savedPlotNames[] = $plot;
-      $savedPlotNames = array_values(array_unique($savedPlotNames));
-      sort($savedPlotNames, SORT_STRING);
-    }
-header('Location: diary_list.php?toast=' . rawurlencode('保存しました'));
-exit;
 
     if ($plot !== '' && $savePlotNameStmt !== null) {
       $savePlotNameStmt->execute([
@@ -126,8 +107,8 @@ exit;
   <meta charset="utf-8">
   <title>日誌入力</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="app.css">
-<script defer src="app.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <script defer src="app.js"></script>
 
   <script>
     function formatWeekdayJa(dateStr){
@@ -166,7 +147,6 @@ exit;
 <body>
 <?php renderGlobalTopbar($u); ?>
 
-
 <div class="topbar">
   <div class="topbar-inner">
     <div class="title">日誌入力</div>
@@ -181,7 +161,7 @@ exit;
 
   <?php if ($err): ?>
     <div class="card" style="border-color:#dc2626;color:#dc2626">
-      <?=e($err)?>
+      <?= e($err) ?>
     </div>
   <?php endif; ?>
 
@@ -190,7 +170,7 @@ exit;
       <div class="grid">
         <div>
           <label>日付<span class="req">*</span> <span id="date_weekday" class="hint"></span></label>
-          <input id="date" type="date" name="date" value="<?=e($dateValue)?>" required>
+          <input id="date" type="date" name="date" value="<?= e($dateValue) ?>" required>
         </div>
 
         <div>
@@ -205,7 +185,7 @@ exit;
 
         <div>
           <label>区画（任意）</label>
-          <input name="plot" list="saved_plot_names" value="<?=e($plotValue)?>" placeholder="例：区画1">
+          <input name="plot" list="saved_plot_names" value="<?= e($plotValue) ?>" placeholder="例：区画1">
           <div class="hint">※自由入力（過去に使った圃場名は候補表示されます）</div>
           <datalist id="saved_plot_names">
             <?php foreach ($savedPlotNames as $name): ?>
@@ -231,7 +211,7 @@ exit;
       <select id="work_main" name="work_main" required onchange="toggleOther()">
         <option value="">選択</option>
         <?php foreach ($workOptions as $w): ?>
-          <option value="<?=e($w)?>"><?=e($w)?></option>
+          <option value="<?= e($w) ?>"><?= e($w) ?></option>
         <?php endforeach; ?>
       </select>
 
