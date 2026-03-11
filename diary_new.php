@@ -19,34 +19,16 @@ $workOptions = [
   '受粉処理','抜根','圃場の片付け','その他'
 ];
 
-$savedPlotNames = [];
-$savePlotNameStmt = null;
-$hasUserFieldNames = (bool)$pdo->query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_field_names'")->fetchColumn();
-if ($hasUserFieldNames) {
-  $plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
-  $plotNameOptions->execute([':uid' => $u['id']]);
-  $savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
-
-  $savePlotNameStmt = $pdo->prepare(
-    "INSERT OR IGNORE INTO user_field_names (user_id,name,created_at) VALUES (:uid,:name,:created_at)"
-  );
-}
-
-  $savePlotNameStmt = $pdo->prepare("
-    INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
-    VALUES (:uid,:name,:created_at)
-  ");
-}
-
-$plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
+$plotNameOptions = $pdo->prepare("
+  SELECT plot FROM (
+    SELECT plot FROM diary_entries WHERE user_id = :uid AND plot IS NOT NULL AND TRIM(plot) <> ''
+    UNION
+    SELECT plot FROM shipments WHERE user_id = :uid AND plot IS NOT NULL AND TRIM(plot) <> ''
+  ) t
+  ORDER BY plot
+");
 $plotNameOptions->execute([':uid' => $u['id']]);
 $savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
-
-$savePlotNameStmt = $pdo->prepare("
-  INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
-  VALUES (:uid,:name,:created_at)
-");
-
 $err = '';
 $dateValue = date('Y-m-d');
 $plotValue = '';
@@ -88,32 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       ':memo' => ($memo !== '' ? $memo : null),
       ':created_at' => date('c'),
     ]);
-
-    if ($plot !== '' && $savePlotNameStmt !== null) {
-
-    if ($plot !== '') {
-      $savePlotNameStmt->execute([
-        ':uid' => $u['id'],
-        ':name' => $plot,
-        ':created_at' => date('c'),
-      ]);
-      $savedPlotNames[] = $plot;
-      $savedPlotNames = array_values(array_unique($savedPlotNames));
-      sort($savedPlotNames, SORT_STRING);
-    }
-header('Location: diary_list.php?toast=' . rawurlencode('保存しました'));
-exit;
-
-    if ($plot !== '' && $savePlotNameStmt !== null) {
-      $savePlotNameStmt->execute([
-        ':uid' => $u['id'],
-        ':name' => $plot,
-        ':created_at' => date('c'),
-      ]);
-      $savedPlotNames[] = $plot;
-      $savedPlotNames = array_values(array_unique($savedPlotNames));
-      sort($savedPlotNames, SORT_STRING);
-    }
 
     header('Location: diary_list.php?toast=' . rawurlencode('保存しました'));
     exit;
