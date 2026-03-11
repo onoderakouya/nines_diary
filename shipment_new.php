@@ -13,13 +13,25 @@ foreach ($fields as $idx => &$field) {
 unset($field);
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
+$plotNameOptions = $pdo->prepare("
+  SELECT plot FROM (
+    SELECT plot FROM shipments WHERE user_id = :uid AND plot IS NOT NULL AND TRIM(plot) <> ''
+    UNION
+    SELECT plot FROM diary_entries WHERE user_id = :uid AND plot IS NOT NULL AND TRIM(plot) <> ''
+  ) t
+  ORDER BY plot
+");
+$plotNameOptions->execute([':uid' => $u['id']]);
+$savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
 $err = '';
 $dateValue = date('Y-m-d');
+$plotValue = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date     = $_POST['date'] ?? '';
   $dateValue = $date !== '' ? $date : $dateValue;
   $field_id = (int)($_POST['field_id'] ?? 0);
   $plot     = trim((string)($_POST['plot'] ?? ''));
+  $plotValue = $plot;
   $crop_id  = (int)($_POST['crop_id'] ?? 0);
 
   $quantity = (float)($_POST['quantity'] ?? 0);
@@ -44,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       ':note'=>($note!==''?$note:null),
       ':created_at'=>date('c'),
     ]);
+
 header('Location: shipment_list.php?toast=' . rawurlencode('保存しました'));
 exit;
 
@@ -131,8 +144,13 @@ exit;
 
         <div class="form-row">
           <label class="form-label">区画（任意）</label>
-          <input class="form-input form-control" name="plot" placeholder="例：区画1">
-          <div class="hint help-text">※表記を揃えると集計が強くなります</div>
+          <input class="form-input form-control" name="plot" list="saved_plot_names" value="<?=e($plotValue)?>" placeholder="例：区画1">
+          <div class="hint help-text">※自由入力（過去に使った圃場名は候補表示されます）</div>
+          <datalist id="saved_plot_names">
+            <?php foreach ($savedPlotNames as $name): ?>
+              <option value="<?= e((string)$name) ?>"></option>
+            <?php endforeach; ?>
+          </datalist>
         </div>
 
         <div class="form-row">

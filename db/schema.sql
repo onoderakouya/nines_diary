@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS fields (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+
 -- crops master used by diary/material/pest/shipment forms
 CREATE TABLE IF NOT EXISTS crops (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
