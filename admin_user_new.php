@@ -22,6 +22,11 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name  = trim((string)($_POST['name'] ?? ''));
   $email = trim((string)($_POST['email'] ?? ''));
+  $role  = (string)($_POST['role'] ?? 'trainee');
+  $allowedRoles = ['trainee', 'admin'];
+  if (!in_array($role, $allowedRoles, true)) {
+    $role = 'trainee';
+  }
 
   if ($name === '' || $email === '') {
     $error = '名前とメールアドレスは必須です。';
@@ -38,18 +43,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $hash = password_hash($tempPass, PASSWORD_DEFAULT);
 
       $ins = $pdo->prepare("INSERT INTO users(name,email,password_hash,role,created_at)
-        VALUES(:name,:email,:hash,'trainee',:created_at)
+        VALUES(:name,:email,:hash,:role,:created_at)
       ");
       $ins->execute([
         ':name' => $name,
         ':email' => $email,
         ':hash' => $hash,
+        ':role' => $role,
         ':created_at' => date('c'),
       ]);
 
       $created = [
         'name' => $name,
         'email' => $email,
+        'role' => $role,
         'temp_password' => $tempPass, // 画面に一度だけ表示
       ];
     }
@@ -80,20 +87,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <h2 style="margin:0 0 8px 0">作成しました</h2>
       <div>名前：<?=e($created['name'])?></div>
       <div>メール：<?=e($created['email'])?></div>
+      <div>権限：<?=e($created['role'] === 'admin' ? '管理者' : '研修生')?></div>
       <div><b>仮パスワード：</b><span style="font-size:1.2em"><?=e($created['temp_password'])?></span></div>
       <p style="color:#555;margin:8px 0 0 0">
-        ※この仮パスワードは今この画面でしか表示されません。必ず控えて研修生に共有してください。
+        ※この仮パスワードは今この画面でしか表示されません。必ず控えて追加したユーザーに共有してください。
       </p>
     </div>
   <?php endif; ?>
 
   <form method="post" style="max-width:520px">
-    <label>研修生名（ニックネーム可）*<br>
+    <label>ユーザー名（ニックネーム可）*<br>
       <input name="name" required style="width:100%" placeholder="例：ナインズ次郎">
     </label><br><br>
 
     <label>メールアドレス*<br>
       <input name="email" type="email" required style="width:100%" placeholder="例：example@gmail.com">
+    </label><br><br>
+
+    <label>権限*<br>
+      <select name="role" required style="width:100%">
+        <option value="trainee" <?= (($_POST['role'] ?? 'trainee') === 'trainee') ? 'selected' : '' ?>>研修生</option>
+        <option value="admin" <?= (($_POST['role'] ?? '') === 'admin') ? 'selected' : '' ?>>管理者</option>
+      </select>
     </label><br><br>
 
     <button type="submit">作成（仮パス発行）</button>
