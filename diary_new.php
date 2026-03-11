@@ -19,6 +19,20 @@ $workOptions = [
   '受粉処理','抜根','圃場の片付け','その他'
 ];
 
+$savedPlotNames = [];
+$savePlotNameStmt = null;
+$hasUserFieldNames = (bool)$pdo->query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_field_names'")->fetchColumn();
+if ($hasUserFieldNames) {
+  $plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
+  $plotNameOptions->execute([':uid' => $u['id']]);
+  $savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
+
+  $savePlotNameStmt = $pdo->prepare("
+    INSERT OR IGNORE INTO user_field_names (user_id,name,created_at)
+    VALUES (:uid,:name,:created_at)
+  ");
+}
+
 $plotNameOptions = $pdo->prepare("SELECT name FROM user_field_names WHERE user_id = :uid ORDER BY name");
 $plotNameOptions->execute([':uid' => $u['id']]);
 $savedPlotNames = $plotNameOptions->fetchAll(PDO::FETCH_COLUMN);
@@ -71,6 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       ':memo'=>$memo?:null,
       ':created_at'=>date('c'),
     ]);
+
+    if ($plot !== '' && $savePlotNameStmt !== null) {
 
     if ($plot !== '') {
       $savePlotNameStmt->execute([
