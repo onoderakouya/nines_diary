@@ -75,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <?php renderGlobalTopbar($admin); ?>
 
+  <main style="max-width:720px;margin:24px auto;padding:0 16px;">
   <h1>研修生ユーザー追加（管理者）</h1>
   <p><a href="index.php">←ホーム</a> / <a href="admin_user_list.php">研修生一覧</a></p>
 
@@ -118,5 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <p style="color:#666">
     研修生は「自分の記録だけ閲覧」、管理者は「集計で全体傾向を見る」運用を想定しています。
   </p>
+  </main>
 </body>
 </html>
