@@ -16,6 +16,15 @@ CREATE TABLE IF NOT EXISTS fields (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS user_field_names (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (user_id, name),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- crops master used by diary/material/pest/shipment forms
 CREATE TABLE IF NOT EXISTS crops (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,6 +125,7 @@ BEGIN
 END;
 
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_user_field_names_user_id ON user_field_names(user_id, name);
 CREATE INDEX IF NOT EXISTS idx_diary_entries_user_date ON diary_entries(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_diary_entries_field_crop ON diary_entries(field_id, crop_id);
 CREATE INDEX IF NOT EXISTS idx_diary_entries_task_id ON diary_entries(task_id);
