@@ -39,7 +39,7 @@ function renderGlobalTopbar(array $u): void {
       </a>
       <nav class="dashboard-nav" aria-label="グローバルナビゲーション">
         <a class="dashboard-nav-item <?=$isDashboard ? 'is-active' : ''?>" href="index.php">ダッシュボード</a>
-        <a class="dashboard-nav-item <?=$isDiary ? 'is-active' : ''?>" href="diary_list.php">作業記録</a>
+        <a class="dashboard-nav-item <?=$isDiary ? 'is-active' : ''?>" href="diary_list.php">日誌</a>
         <a class="dashboard-nav-item <?=$isShipment ? 'is-active' : ''?>" href="shipment_list.php">出荷</a>
         <a class="dashboard-nav-item <?=$isMaterial ? 'is-active' : ''?>" href="material_list.php">資材費</a>
         <a class="dashboard-nav-item <?=$isPest ? 'is-active' : ''?>" href="pest_list.php">病害虫</a>
