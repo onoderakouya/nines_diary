@@ -218,17 +218,22 @@ function mmToHM(int $minutes): string {
   <link rel="stylesheet" href="app.css">
 
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-    table{border-collapse:collapse;width:100%;max-width:980px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;padding:0 12px}
+    table{border-collapse:collapse;width:100%;max-width:980px;margin:0 auto;display:block;overflow-x:auto;white-space:nowrap}
     th,td{border:1px solid #ddd;padding:8px}
     th{background:#f6f6f6;text-align:left}
-    .wrap{max-width:1040px}
+    .wrap{max-width:1040px;margin:0 auto;padding:8px 0 28px}
     .muted{color:#666;font-size:12px}
-    .cards{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 18px}
-    .card{border:1px solid #ddd;border-radius:8px;padding:10px;min-width:220px}
+    .cards{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 18px;justify-content:center}
+    .card{border:1px solid #ddd;border-radius:8px;padding:10px;min-width:220px;background:#fff}
     .big{font-size:20px;font-weight:700}
     .section{margin:22px 0}
-    .grid{display:grid;grid-template-columns:1fr;gap:18px}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
+    .stack{display:flex;flex-direction:column;gap:10px}
+    .filters{margin:10px auto 12px;display:flex;flex-direction:column;gap:10px;max-width:980px}
+    .filter-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .filter-row select,.filter-row input,.filter-row button{min-height:36px}
+    h1,h2,p{text-align:center}
     @media (min-width: 900px){
       .grid{grid-template-columns:1fr 1fr}
     }
@@ -241,48 +246,50 @@ function mmToHM(int $minutes): string {
   <h1>集計（管理者）</h1>
   <p><a href="index.php">←ホーム</a></p>
 
-  <form method="get" style="margin:10px 0 12px">
-    <label>From <input type="date" name="from" value="<?=h($from)?>"></label>
-    <label>To <input type="date" name="to" value="<?=h($to)?>"></label>
-    <br><br>
+  <form method="get" class="filters">
+    <div class="filter-row">
+      <label>From <input type="date" name="from" value="<?=h($from)?>"></label>
+      <label>To <input type="date" name="to" value="<?=h($to)?>"></label>
+    </div>
+    <div class="filter-row">
+      <select name="user_id">
+        <option value="0">ユーザー：すべて</option>
+        <?php foreach ($users as $uu): ?>
+          <option value="<?= (int)$uu['id'] ?>" <?= $user === (int)$uu['id'] ? 'selected' : '' ?>>
+            <?=h($uu['name'])?>（<?=h($uu['role'])?>）
+          </option>
+        <?php endforeach; ?>
+      </select>
 
-    <select name="user_id">
-      <option value="0">ユーザー：すべて</option>
-      <?php foreach ($users as $uu): ?>
-        <option value="<?= (int)$uu['id'] ?>" <?= $user === (int)$uu['id'] ? 'selected' : '' ?>>
-          <?=h($uu['name'])?>（<?=h($uu['role'])?>）
-        </option>
-      <?php endforeach; ?>
-    </select>
+      <select name="field_id">
+        <option value="0">圃場：すべて</option>
+        <?php foreach ($fields as $f): ?>
+          <option value="<?= (int)$f['id'] ?>" <?= $field === (int)$f['id'] ? 'selected' : '' ?>>
+            <?=h($f['label'])?>
+          </option>
+        <?php endforeach; ?>
+      </select>
 
-    <select name="field_id">
-      <option value="0">圃場：すべて</option>
-      <?php foreach ($fields as $f): ?>
-        <option value="<?= (int)$f['id'] ?>" <?= $field === (int)$f['id'] ? 'selected' : '' ?>>
-          <?=h($f['label'])?>
-        </option>
-      <?php endforeach; ?>
-    </select>
+      <select name="crop_id">
+        <option value="0">品目：すべて</option>
+        <?php foreach ($crops as $c): ?>
+          <option value="<?= (int)$c['id'] ?>" <?= $crop === (int)$c['id'] ? 'selected' : '' ?>>
+            <?=h($c['name'])?>
+          </option>
+        <?php endforeach; ?>
+      </select>
 
-    <select name="crop_id">
-      <option value="0">品目：すべて</option>
-      <?php foreach ($crops as $c): ?>
-        <option value="<?= (int)$c['id'] ?>" <?= $crop === (int)$c['id'] ? 'selected' : '' ?>>
-          <?=h($c['name'])?>
-        </option>
-      <?php endforeach; ?>
-    </select>
+      <select name="task_id">
+        <option value="0">作業：すべて</option>
+        <?php foreach ($tasks as $t): ?>
+          <option value="<?= (int)$t['id'] ?>" <?= $task === (int)$t['id'] ? 'selected' : '' ?>>
+            <?=h($t['name'])?>
+          </option>
+        <?php endforeach; ?>
+      </select>
 
-    <select name="task_id">
-      <option value="0">作業：すべて</option>
-      <?php foreach ($tasks as $t): ?>
-        <option value="<?= (int)$t['id'] ?>" <?= $task === (int)$t['id'] ? 'selected' : '' ?>>
-          <?=h($t['name'])?>
-        </option>
-      <?php endforeach; ?>
-    </select>
-
-    <button>絞り込み</button>
+      <button>絞り込み</button>
+    </div>
     <span class="muted">※最大200件制限なし（集計なので全件対象）</span>
   </form>
 
@@ -371,7 +378,7 @@ function mmToHM(int $minutes): string {
         <?php endforeach; ?>
       </table>
       <h2>病害虫：月別（季節性）</h2>
-<table border="1" cellpadding="6" style="border-collapse:collapse;max-width:980px;width:100%">
+<table>
   <tr>
     <th>年月</th>
     <th>タグ</th>
@@ -421,7 +428,7 @@ function mmToHM(int $minutes): string {
     <p class="muted">※区画が自由入力なので、表記が揃うほど集計が鋭くなります（datalist候補が効きます）。</p>
 
 <h2>病害虫：タグ×品目（上位30）</h2>
-<table border="1" cellpadding="6" style="border-collapse:collapse;max-width:980px;width:100%">
+<table>
   <tr>
     <th>件数</th>
     <th>品目</th>
@@ -450,7 +457,7 @@ function mmToHM(int $minutes): string {
 
 
     <h2>病害虫：タグ×圃場（上位30）</h2>
-<table border="1" cellpadding="6" style="border-collapse:collapse;max-width:980px;width:100%">
+<table>
   <tr>
     <th>件数</th>
     <th>圃場</th>
