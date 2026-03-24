@@ -160,11 +160,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     function toggleOther(){
-      const sel = document.getElementById('work_main');
+      const checks = document.querySelectorAll('input[name="work_main[]"]');
       const box = document.getElementById('work_other_box');
-      if (!sel || !box) return;
-      const selected = Array.from(sel.selectedOptions).map((o) => o.value);
-      box.style.display = selected.includes('その他') ? 'block' : 'none';
+      if (!checks.length || !box) return;
+      const hasOther = Array.from(checks).some((check) => check.checked && check.value === 'その他');
+      box.style.display = hasOther ? 'block' : 'none';
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -243,12 +243,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="card">
       <label>作業内容<span class="req">*</span></label>
-      <select id="work_main" name="work_main[]" required multiple size="8" onchange="toggleOther()">
+      <div id="work_main" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
         <?php foreach ($workOptions as $w): ?>
-          <option value="<?= e($w) ?>" <?= in_array($w, $workMainValues, true) ? 'selected' : '' ?>><?= e($w) ?></option>
+          <label style="display:flex;align-items:center;gap:6px;padding:8px;border:1px solid #ddd;border-radius:8px;cursor:pointer">
+            <input
+              type="checkbox"
+              name="work_main[]"
+              value="<?= e($w) ?>"
+              <?= in_array($w, $workMainValues, true) ? 'checked' : '' ?>
+              onchange="toggleOther()"
+            >
+            <span><?= e($w) ?></span>
+          </label>
         <?php endforeach; ?>
-      </select>
-      <div class="hint">※複数選択できます（Windows: Ctrl / Mac: Command + クリック）</div>
+      </div>
+      <div class="hint">※複数選択できます（タップ・クリックでチェック）</div>
 
       <div id="work_other_box" style="display:none;margin-top:10px">
         <label>作業内容（自由入力）</label>
