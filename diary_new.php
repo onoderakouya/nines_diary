@@ -44,24 +44,57 @@ if ($hasUserFieldNames) {
 $err = '';
 $dateValue = date('Y-m-d');
 $plotValue = '';
+$fieldIdValue = 0;
+$cropIdValue = 0;
+$minutesValue = '';
+$weatherValue = '';
+$tempValue = '';
+$memoValue = '';
+$workMainValues = [];
+$workOtherValue = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date = $_POST['date'] ?? '';
   $dateValue = $date !== '' ? $date : $dateValue;
   $field_id = (int)($_POST['field_id'] ?? 0);
+  $fieldIdValue = $field_id;
   $plot = trim((string)($_POST['plot'] ?? ''));
   $plotValue = $plot;
   $crop_id = (int)($_POST['crop_id'] ?? 0);
+  $cropIdValue = $crop_id;
 
-  $work_main = trim((string)($_POST['work_main'] ?? ''));
+  $workMainPost = $_POST['work_main'] ?? [];
+  if (!is_array($workMainPost)) {
+    $workMainPost = [$workMainPost];
+  }
+  $workMainValues = array_values(array_filter(array_map(
+    static fn($v): string => trim((string)$v),
+    $workMainPost
+  ), static fn($v): bool => $v !== ''));
+  $workMainValues = array_values(array_unique($workMainValues));
   $work_other = trim((string)($_POST['work_other'] ?? ''));
+  $workOtherValue = $work_other;
 
   $minutes = (int)($_POST['minutes'] ?? 0);
+  $minutesValue = (string)($_POST['minutes'] ?? '');
   $weather = trim((string)($_POST['weather'] ?? ''));
-  $temp_c = ($_POST['temp_c'] ?? '') === '' ? null : (float)$_POST['temp_c'];
+  $weatherValue = $weather;
+  $tempValue = (string)($_POST['temp_c'] ?? '');
+  $temp_c = $tempValue === '' ? null : (float)$tempValue;
   $memo = trim((string)($_POST['memo'] ?? ''));
+  $memoValue = $memo;
 
-  $work_content = ($work_main === 'その他') ? $work_other : $work_main;
+  $workContents = [];
+  foreach ($workMainValues as $work) {
+    if ($work === 'その他') {
+      if ($work_other !== '') {
+        $workContents[] = $work_other;
+      }
+      continue;
+    }
+    $workContents[] = $work;
+  }
+  $work_content = implode('、', array_values(array_unique($workContents)));
 
   if (!$date || !$field_id || !$crop_id || $work_content === '' || $minutes <= 0) {
     $err = '必須項目を入力してください（作業時間は1分以上）';
@@ -129,7 +162,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     function toggleOther(){
       const sel = document.getElementById('work_main');
       const box = document.getElementById('work_other_box');
-      box.style.display = (sel.value === 'その他') ? 'block' : 'none';
+      if (!sel || !box) return;
+      const selected = Array.from(sel.selectedOptions).map((o) => o.value);
+      box.style.display = selected.includes('その他') ? 'block' : 'none';
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -178,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <select name="field_id" required>
             <option value="">選択</option>
             <?php foreach ($fields as $f): ?>
-              <option value="<?= (int)$f['id'] ?>"><?= e((string)$f['display_label']) ?></option>
+              <option value="<?= (int)$f['id'] ?>" <?= ((int)$f['id'] === $fieldIdValue) ? 'selected' : '' ?>><?= e((string)$f['display_label']) ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -199,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <select name="crop_id" required>
             <option value="">選択</option>
             <?php foreach ($crops as $c): ?>
-              <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
+              <option value="<?= (int)$c['id'] ?>" <?= ((int)$c['id'] === $cropIdValue) ? 'selected' : '' ?>><?= e($c['name']) ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -208,16 +243,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="card">
       <label>作業内容<span class="req">*</span></label>
-      <select id="work_main" name="work_main" required onchange="toggleOther()">
-        <option value="">選択</option>
+      <select id="work_main" name="work_main[]" required multiple size="8" onchange="toggleOther()">
         <?php foreach ($workOptions as $w): ?>
-          <option value="<?= e($w) ?>"><?= e($w) ?></option>
+          <option value="<?= e($w) ?>" <?= in_array($w, $workMainValues, true) ? 'selected' : '' ?>><?= e($w) ?></option>
         <?php endforeach; ?>
       </select>
+      <div class="hint">※複数選択できます（Windows: Ctrl / Mac: Command + クリック）</div>
 
       <div id="work_other_box" style="display:none;margin-top:10px">
         <label>作業内容（自由入力）</label>
-        <input name="work_other" placeholder="例：支柱補修など">
+        <input name="work_other" value="<?= e($workOtherValue) ?>" placeholder="例：支柱補修など">
       </div>
     </div>
 
@@ -225,22 +260,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="grid">
         <div>
           <label>作業時間（分）<span class="req">*</span></label>
-          <input type="number" name="minutes" min="1" placeholder="例：45" required>
+          <input type="number" name="minutes" min="1" value="<?= e($minutesValue) ?>" placeholder="例：45" required>
         </div>
         <div>
           <label>天気（任意）</label>
-          <input name="weather" placeholder="晴れ / 曇り / 雨">
+          <input name="weather" value="<?= e($weatherValue) ?>" placeholder="晴れ / 曇り / 雨">
         </div>
         <div>
           <label>気温（℃・任意）</label>
-          <input type="number" name="temp_c" step="0.1" placeholder="例：23.5">
+          <input type="number" name="temp_c" step="0.1" value="<?= e($tempValue) ?>" placeholder="例：23.5">
         </div>
       </div>
     </div>
 
     <div class="card">
       <label>メモ（任意）</label>
-      <textarea name="memo" placeholder="病害虫の兆候・気づきなど"></textarea>
+      <textarea name="memo" placeholder="病害虫の兆候・気づきなど"><?= e($memoValue) ?></textarea>
     </div>
 
     <div class="card">
