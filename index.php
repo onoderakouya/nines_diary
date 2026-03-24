@@ -16,9 +16,6 @@ $monthMinutesStmt = $pdo->prepare('SELECT COALESCE(SUM(minutes), 0) FROM diary_e
 $monthMinutesStmt->execute([(int)$u['id'], $monthPrefix]);
 $monthMinutes = (int)$monthMinutesStmt->fetchColumn();
 
-$fieldsCount = (int)$pdo->query('SELECT COUNT(*) FROM fields')->fetchColumn();
-$cropsCount = (int)$pdo->query('SELECT COUNT(*) FROM crops')->fetchColumn();
-
 require_once __DIR__ . '/weather.php';
 $weatherData = fetchWeather($today);
 $weatherCodeMap = [
@@ -95,14 +92,6 @@ function formatMinutesToHours(int $minutes): string {
     <article class="card dashboard-kpi-card">
       <p class="dashboard-kpi-label">今日の作業</p>
       <p class="dashboard-kpi-value"><?=e(formatMinutesToHours($todayMinutes))?></p>
-    </article>
-    <article class="card dashboard-kpi-card">
-      <p class="dashboard-kpi-label">圃場数</p>
-      <p class="dashboard-kpi-value"><?=e((string)$fieldsCount)?> <span class="dashboard-kpi-unit">箇所</span></p>
-    </article>
-    <article class="card dashboard-kpi-card">
-      <p class="dashboard-kpi-label">品目数</p>
-      <p class="dashboard-kpi-value"><?=e((string)$cropsCount)?> <span class="dashboard-kpi-unit">品目</span></p>
     </article>
     <article class="card dashboard-kpi-card">
       <p class="dashboard-kpi-label">今月の作業時間</p>
