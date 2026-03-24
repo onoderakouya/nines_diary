@@ -32,6 +32,18 @@ if ($isAdmin) {
   $params[':uid'] = $u['id'];
 }
 
+$shipmentColumns = [];
+$colSt = $pdo->query("PRAGMA table_info(shipments)");
+while ($col = $colSt->fetch(PDO::FETCH_ASSOC)) {
+  $name = (string)($col['name'] ?? '');
+  if ($name !== '') {
+    $shipmentColumns[$name] = true;
+  }
+}
+
+$quantityExpr = isset($shipmentColumns['quantity']) ? 's.quantity' : 's.qty';
+$noteExpr = isset($shipmentColumns['note']) ? 'COALESCE(s.note, \'\')' : 'COALESCE(s.memo, \'\')';
+
 $sql = "
 SELECT
   s.date,
@@ -39,9 +51,9 @@ SELECT
   f.label AS field_label,
   COALESCE(s.plot,'') AS plot,
   c.name AS crop_name,
-  s.qty,
+  {$quantityExpr} AS quantity,
   s.unit,
-  COALESCE(s.memo,'') AS memo,
+  {$noteExpr} AS note,
   s.created_at
 FROM shipments s
 JOIN users  u ON u.id = s.user_id
@@ -66,9 +78,9 @@ while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
     "\t" . $r['field_label'],
     $r['plot'],
     $r['crop_name'],
-    $r['qty'],
+    $r['quantity'],
     $r['unit'],
-    $r['memo'],
+    $r['note'],
     $r['created_at'],
   ]);
 }
