@@ -62,7 +62,7 @@ while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
   csv_row([
     $r['date'],
     $r['user_name'],
-    $r['field_label'],
+    "\t" . $r['field_label'],
     $r['crop_name'],
     $r['item_name'],
     $r['amount'],
