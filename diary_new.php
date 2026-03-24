@@ -142,6 +142,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="app.css">
   <script defer src="app.js"></script>
+  <style>
+    .work-options{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    .work-option{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      cursor:pointer;
+      background:#f8fafc;
+      transition:all .15s ease;
+    }
+    .work-option:hover{
+      border-color:#22c55e;
+      background:#f0fdf4;
+      box-shadow:0 3px 10px rgba(34,197,94,.12);
+    }
+    .work-option input[type="checkbox"]{
+      width:20px;
+      height:20px;
+      accent-color:#16a34a;
+      flex:0 0 auto;
+    }
+    .work-option-text{
+      font-size:18px;
+      font-weight:700;
+      line-height:1.3;
+      color:#0f172a;
+    }
+  </style>
 
   <script>
     function formatWeekdayJa(dateStr){
@@ -243,9 +279,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="card">
       <label>作業内容<span class="req">*</span></label>
-      <div id="work_main" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
+      <div id="work_main" class="work-options">
         <?php foreach ($workOptions as $w): ?>
-          <label style="display:flex;align-items:center;gap:6px;padding:8px;border:1px solid #ddd;border-radius:8px;cursor:pointer">
+          <label class="work-option">
             <input
               type="checkbox"
               name="work_main[]"
@@ -253,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <?= in_array($w, $workMainValues, true) ? 'checked' : '' ?>
               onchange="toggleOther()"
             >
-            <span><?= e($w) ?></span>
+            <span class="work-option-text"><?= e($w) ?></span>
           </label>
         <?php endforeach; ?>
       </div>
