@@ -1,7 +1,29 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/db.php';
-session_start();
+
+const LOGIN_SESSION_TTL = 60 * 60 * 24 * 30; // 30日
+
+function startAppSession(): void {
+  if (session_status() === PHP_SESSION_ACTIVE) {
+    return;
+  }
+
+  $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? '') === '443');
+
+  ini_set('session.gc_maxlifetime', (string)LOGIN_SESSION_TTL);
+  session_set_cookie_params([
+    'lifetime' => LOGIN_SESSION_TTL,
+    'path' => '/',
+    'secure' => $https,
+    'httponly' => true,
+    'samesite' => 'Lax',
+  ]);
+  session_start();
+}
+
+startAppSession();
 
 function currentUser(): ?array {
   return $_SESSION['user'] ?? null;
