@@ -202,6 +202,13 @@ $csv = "diary_export.php"
         </div>
       <?php endif; ?>
 
+      <?php if (!empty($r['work_content'])): ?>
+        <div style="margin-top:10px">
+          <div class="muted" style="font-weight:700;margin-bottom:4px">作業内容</div>
+          <div><?= nl2br(e((string)$r['work_content'])) ?></div>
+        </div>
+      <?php endif; ?>
+
       <?php if (!empty($r['memo'])): ?>
         <div style="margin-top:10px">
           <div class="muted" style="font-weight:700;margin-bottom:4px">メモ</div>
