@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $user = $stmt->fetch();
 
   if ($user && password_verify($pass, $user['password_hash'])) {
+    session_regenerate_id(true);
     $_SESSION['user'] = $user;
     header('Location: index.php');
     exit;
