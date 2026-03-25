@@ -6,11 +6,63 @@ require_once __DIR__ . '/ui.php';
 $admin = requireAdmin();
 $pdo = db();
 
-$rows = $pdo->query("SELECT id,name,email,role,created_at FROM users ORDER BY created_at DESC")->fetchAll();
-
 function roleLabel(string $r): string {
   return $r === 'admin' ? '管理者' : '研修生';
 }
+
+$allowedRoles = ['admin', 'trainee'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $token = (string)($_POST['csrf_token'] ?? '');
+  if (!verifyCsrfToken($token)) {
+    http_response_code(400);
+    exit('不正なリクエストです。');
+  }
+
+  $targetId = (int)($_POST['user_id'] ?? 0);
+  $newRole = (string)($_POST['role'] ?? '');
+
+  if ($targetId <= 0 || !in_array($newRole, $allowedRoles, true)) {
+    setFlash('error', '入力内容が不正です。');
+    header('Location: admin_user_list.php');
+    exit;
+  }
+
+  if ((int)$admin['id'] === $targetId) {
+    setFlash('error', '自分自身の権限は変更できません。');
+    header('Location: admin_user_list.php');
+    exit;
+  }
+
+  $st = $pdo->prepare('SELECT id, role FROM users WHERE id = :id');
+  $st->execute([':id' => $targetId]);
+  $target = $st->fetch();
+
+  if (!$target) {
+    setFlash('error', '対象ユーザーが見つかりません。');
+    header('Location: admin_user_list.php');
+    exit;
+  }
+
+  $currentRole = (string)$target['role'];
+  if ($currentRole !== $newRole) {
+    $up = $pdo->prepare('UPDATE users SET role = :role WHERE id = :id');
+    $up->execute([
+      ':role' => $newRole,
+      ':id' => $targetId,
+    ]);
+    setFlash('ok', 'ユーザー権限を更新しました。');
+  } else {
+    setFlash('ok', '権限は変更されていません。');
+  }
+
+  header('Location: admin_user_list.php');
+  exit;
+}
+
+$rows = $pdo->query("SELECT id,name,email,role,created_at FROM users ORDER BY created_at DESC")->fetchAll();
+$okMessage = getFlash('ok');
+$errorMessage = getFlash('error');
 ?>
 <!doctype html>
 <html lang="ja">
@@ -44,6 +96,31 @@ function roleLabel(string $r): string {
     .admin-users-table{
       min-width:700px;
     }
+    .admin-users-role-form{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .admin-users-role-form select{
+      min-width:86px;
+    }
+    .admin-users-flash{
+      max-width:740px;
+      margin:0 auto 12px;
+      padding:10px 12px;
+      border-radius:8px;
+      font-size:14px;
+    }
+    .admin-users-flash.ok{
+      background:#e6ffef;
+      border:1px solid #93d7af;
+      color:#135a2c;
+    }
+    .admin-users-flash.error{
+      background:#ffecec;
+      border:1px solid #e09c9c;
+      color:#7a1f1f;
+    }
     .admin-users-note{
       color:#666;
       margin-top:10px;
@@ -71,6 +148,13 @@ function roleLabel(string $r): string {
       <p class="admin-users-links"><a href="index.php">←ホーム</a> / <a href="admin_user_new.php">＋研修生ユーザー追加</a></p>
     </header>
 
+    <?php if ($okMessage): ?>
+      <p class="admin-users-flash ok"><?= e($okMessage) ?></p>
+    <?php endif; ?>
+    <?php if ($errorMessage): ?>
+      <p class="admin-users-flash error"><?= e($errorMessage) ?></p>
+    <?php endif; ?>
+
     <section class="card">
       <div class="admin-users-table-wrap">
         <table class="table admin-users-table">
@@ -93,7 +177,16 @@ function roleLabel(string $r): string {
               <td><?= e(roleLabel((string)$r['role'])) ?></td>
               <td><?= e((string)$r['created_at']) ?></td>
               <td>
-                  <a href="admin_reset_password.php?id=<?= (int)$r['id'] ?>">パス再発行</a>
+                <form method="post" class="admin-users-role-form">
+                  <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+                  <input type="hidden" name="user_id" value="<?= (int)$r['id'] ?>">
+                  <select name="role" <?= ((int)$admin['id'] === (int)$r['id']) ? 'disabled' : '' ?>>
+                    <option value="trainee" <?= ((string)$r['role'] === 'trainee') ? 'selected' : '' ?>>研修生</option>
+                    <option value="admin" <?= ((string)$r['role'] === 'admin') ? 'selected' : '' ?>>管理者</option>
+                  </select>
+                  <button type="submit" <?= ((int)$admin['id'] === (int)$r['id']) ? 'disabled' : '' ?>>権限変更</button>
+                </form>
+                <a href="admin_reset_password.php?id=<?= (int)$r['id'] ?>">パス再発行</a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -103,7 +196,7 @@ function roleLabel(string $r): string {
     </section>
 
     <p class="admin-users-note">
-      ※削除・パスワード再発行も必要なら追加できます（誤操作防止のため確認ダイアログ付きにするのがおすすめ）。
+      ※自分自身の権限は変更できません。
     </p>
   </main>
 </body>
