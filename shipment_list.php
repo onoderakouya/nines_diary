@@ -33,7 +33,7 @@ if ($isAdmin) {
   $params[':uid'] = $u['id'];
 }
 
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY CAST(SUBSTRING_INDEX(label, '-', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(label, '-', -1) AS UNSIGNED), label")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 $users  = $pdo->query("SELECT id,name,role FROM users ORDER BY role DESC, name ASC")->fetchAll();
 
