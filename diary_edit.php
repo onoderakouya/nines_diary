@@ -41,8 +41,27 @@ $minutes = (int)$row['minutes'];
 $weather = (string)($row['weather'] ?? '');
 $temp_c = $row['temp_c'] === null ? '' : (string)$row['temp_c'];
 $memo = (string)($row['memo'] ?? '');
-$workMain = in_array((string)$row['work_content'], $workOptions, true) ? (string)$row['work_content'] : 'その他';
-$workOther = $workMain === 'その他' ? (string)($row['work_content'] ?? '') : '';
+$existingWorkContent = trim((string)($row['work_content'] ?? ''));
+$workMainValues = [];
+$workOther = '';
+if ($existingWorkContent !== '') {
+  $parts = array_values(array_filter(array_map(
+    static fn($v): string => trim((string)$v),
+    preg_split('/[、,]/u', $existingWorkContent) ?: []
+  ), static fn($v): bool => $v !== ''));
+
+  foreach ($parts as $part) {
+    if (in_array($part, $workOptions, true) && $part !== 'その他') {
+      $workMainValues[] = $part;
+      continue;
+    }
+    if ($part !== '') {
+      $workOther = $part;
+      $workMainValues[] = 'その他';
+    }
+  }
+}
+$workMainValues = array_values(array_unique($workMainValues));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -60,14 +79,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $crop_id = $cropSelectionValue === 'other'
     ? findOrCreateCropId($pdo, $cropOtherValue)
     : (int)$cropSelectionValue;
-  $workMain = trim((string)($_POST['work_main'] ?? ''));
+  $workMainPost = $_POST['work_main'] ?? [];
+  if (!is_array($workMainPost)) {
+    $workMainPost = [$workMainPost];
+  }
+  $workMainValues = array_values(array_filter(array_map(
+    static fn($v): string => trim((string)$v),
+    $workMainPost
+  ), static fn($v): bool => $v !== ''));
+  $workMainValues = array_values(array_unique($workMainValues));
   $workOther = trim((string)($_POST['work_other'] ?? ''));
   $minutes = (int)($_POST['minutes'] ?? 0);
   $weather = trim((string)($_POST['weather'] ?? ''));
   $temp_c = ($_POST['temp_c'] ?? '') === '' ? '' : (string)(float)$_POST['temp_c'];
   $memo = trim((string)($_POST['memo'] ?? ''));
 
-  $workContent = $workMain === 'その他' ? $workOther : $workMain;
+  $workContents = [];
+  foreach ($workMainValues as $work) {
+    if ($work === 'その他') {
+      if ($workOther !== '') {
+        $workContents[] = $workOther;
+      }
+      continue;
+    }
+    $workContents[] = $work;
+  }
+  $workContent = implode('、', array_values(array_unique($workContents)));
 
   if (!$date || !$field_id || !$crop_id || $workContent === '' || $minutes <= 0) {
     $err = '必須項目を入力してください（作業時間は1分以上）';
@@ -103,11 +140,49 @@ $csrf = csrfToken();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="app.css">
   <script defer src="app.js"></script>
+  <style>
+    .work-options{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    .work-option{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      cursor:pointer;
+      background:#f8fafc;
+      transition:all .15s ease;
+    }
+    .work-option:hover{
+      border-color:#22c55e;
+      background:#f0fdf4;
+      box-shadow:0 3px 10px rgba(34,197,94,.12);
+    }
+    .work-option input[type="checkbox"]{
+      width:20px;
+      height:20px;
+      accent-color:#16a34a;
+      flex:0 0 auto;
+    }
+    .work-option-text{
+      font-size:18px;
+      font-weight:700;
+      line-height:1.3;
+      color:#0f172a;
+    }
+  </style>
   <script>
     function toggleOther(){
-      const sel = document.getElementById('work_main');
+      const checks = document.querySelectorAll('input[name="work_main[]"]');
       const box = document.getElementById('work_other_box');
-      box.style.display = (sel.value === 'その他') ? 'block' : 'none';
+      if (!checks.length || !box) return;
+      const hasOther = Array.from(checks).some((check) => check.checked && check.value === 'その他');
+      box.style.display = hasOther ? 'block' : 'none';
     }
     function toggleCropOther(){
       const sel = document.querySelector('select[name="crop_id"]');
@@ -184,12 +259,21 @@ $csrf = csrfToken();
 
     <div class="card">
       <label>作業内容<span class="req">*</span></label>
-      <select id="work_main" name="work_main" required onchange="toggleOther()">
-        <option value="">選択</option>
+      <div id="work_main" class="work-options">
         <?php foreach ($workOptions as $w): ?>
-          <option value="<?=e($w)?>" <?= $workMain === $w ? 'selected' : '' ?>><?=e($w)?></option>
+          <label class="work-option">
+            <input
+              type="checkbox"
+              name="work_main[]"
+              value="<?= e($w) ?>"
+              <?= in_array($w, $workMainValues, true) ? 'checked' : '' ?>
+              onchange="toggleOther()"
+            >
+            <span class="work-option-text"><?= e($w) ?></span>
+          </label>
         <?php endforeach; ?>
-      </select>
+      </div>
+      <div class="hint">※複数選択できます（タップ・クリックでチェック）</div>
 
       <div id="work_other_box" style="display:none;margin-top:10px">
         <label>作業内容（自由入力）</label>
