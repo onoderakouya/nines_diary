@@ -7,9 +7,25 @@ $pdo = db();
 $csrf = csrfToken();
 $flashSuccess = getFlash('success');
 $flashError = getFlash('error');
+$isAdmin = isAdmin($u);
 
-$where = " WHERE d.user_id = :uid ";
-$params = [':uid'=>$u['id']];
+$selectedUserId = (int)($_GET['user_id'] ?? 0);
+$trainees = [];
+if ($isAdmin) {
+  $trainees = $pdo->query("SELECT id, name FROM users WHERE role = 'trainee' ORDER BY name")->fetchAll();
+}
+
+$where = " WHERE 1=1 ";
+$params = [];
+if ($isAdmin) {
+  if ($selectedUserId > 0) {
+    $where .= " AND d.user_id = :uid ";
+    $params[':uid'] = $selectedUserId;
+  }
+} else {
+  $where .= " AND d.user_id = :uid ";
+  $params[':uid'] = $u['id'];
+}
 
 $from  = $_GET['from'] ?? '';
 $to    = $_GET['to'] ?? '';
@@ -30,8 +46,9 @@ $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 $tasks  = $pdo->query("SELECT id,name FROM tasks ORDER BY id")->fetchAll();
 
 $sql = "
-SELECT d.*, f.label as field_label, c.name as crop_name, t.name as task_name
+SELECT d.*, u2.name AS user_name, f.label as field_label, c.name as crop_name, t.name as task_name
 FROM diary_entries d
+JOIN users u2 ON u2.id=d.user_id
 JOIN fields f ON f.id=d.field_id
 JOIN crops c ON c.id=d.crop_id
 JOIN tasks t ON t.id=d.task_id
@@ -50,7 +67,8 @@ $csv = "diary_export.php"
   . "&field_id=" . (int)$field
   . "&crop_id=" . (int)$crop
   . "&task_id=" . (int)$task
-  . "&plot=" . urlencode((string)$plot);
+  . "&plot=" . urlencode((string)$plot)
+  . "&user_id=" . (int)$selectedUserId;
 ?>
 <!doctype html>
 <html lang="ja">
@@ -100,6 +118,20 @@ $csv = "diary_export.php"
           <label>To</label>
           <input type="date" name="to" value="<?=e((string)$to)?>">
         </div>
+
+        <?php if ($isAdmin): ?>
+          <div>
+            <label>ユーザー</label>
+            <select name="user_id">
+              <option value="0">すべての研修生</option>
+              <?php foreach ($trainees as $tr): ?>
+                <option value="<?= (int)$tr['id'] ?>" <?= $selectedUserId===(int)$tr['id']?'selected':'' ?>>
+                  <?= e($tr['name']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        <?php endif; ?>
 
         <div>
           <label>圃場</label>
@@ -178,6 +210,7 @@ $csv = "diary_export.php"
             <?=e((string)$r['date'])?>
           </div>
           <div class="kv">
+            <?php if ($isAdmin): ?><?= e((string)$r['user_name']) ?> / <?php endif; ?>
             <?=e((string)$r['field_label'])?>
             <?php if (!empty($r['plot'])): ?> / <?=e((string)$r['plot'])?><?php endif; ?>
             / <?=e((string)$r['crop_name'])?>
