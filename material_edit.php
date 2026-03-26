@@ -12,7 +12,7 @@ if ($id <= 0) {
   exit;
 }
 
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY CAST(substr(label,1,instr(label,'-')-1) AS INTEGER), CAST(substr(label,instr(label,'-')+1) AS INTEGER), id")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 $stmt = $pdo->prepare('SELECT * FROM materials WHERE user_id = :uid AND id = :id');

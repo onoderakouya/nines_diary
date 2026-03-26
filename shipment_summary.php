@@ -22,7 +22,7 @@ if ($field) { $where .= " AND s.field_id = :field "; $params[':field'] = $field;
 if ($crop)  { $where .= " AND s.crop_id = :crop ";   $params[':crop'] = $crop; }
 
 $users  = $pdo->query("SELECT id,name,role FROM users ORDER BY role DESC, name ASC")->fetchAll();
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY CAST(substr(label,1,instr(label,'-')-1) AS INTEGER), CAST(substr(label,instr(label,'-')+1) AS INTEGER), id")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 function fetchAll(PDO $pdo, string $sql, array $params): array {
