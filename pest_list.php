@@ -41,7 +41,7 @@ LIMIT 300
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll();
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY id")->fetchAll();
 
 // CSVリンク
 $csv = "pest_export.php"

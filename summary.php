@@ -28,7 +28,7 @@ if ($task)  { $where .= " AND d.task_id = :task ";   $params[':task']  = $task; 
 
 // マスタ
 $users  = $pdo->query("SELECT id,name,email,role FROM users ORDER BY role DESC, name ASC")->fetchAll();
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY id")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 $tasks  = $pdo->query("SELECT id,name FROM tasks ORDER BY id")->fetchAll();
 

@@ -24,7 +24,7 @@ if ($crop)  { $where .= " AND p.crop_id = :crop ";   $params[':crop']  = $crop; 
 
 // マスタ
 $users  = $pdo->query("SELECT id,name,role FROM users ORDER BY role DESC, name ASC")->fetchAll();
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY label")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY id")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
 function fetchAllAssoc(PDO $pdo, string $sql, array $params): array {
