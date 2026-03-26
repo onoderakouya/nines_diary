@@ -114,6 +114,29 @@ function ensureStandardFields(PDO $pdo): void {
   }
 }
 
+function ensureStandardCrops(PDO $pdo): void {
+  $crops = [
+    1 => 'トマト',
+    2 => 'きゅうり',
+    3 => 'ピーマン',
+    4 => 'なす',
+    5 => '抑制トマト',
+  ];
+
+  $stmt = $pdo->prepare(
+    'INSERT INTO crops (id, name, created_at) VALUES (:id, :name, :created_at) '
+    . 'ON CONFLICT(id) DO UPDATE SET name = excluded.name'
+  );
+
+  foreach ($crops as $id => $name) {
+    $stmt->execute([
+      ':id' => $id,
+      ':name' => $name,
+      ':created_at' => date('c'),
+    ]);
+  }
+}
+
 function db(): PDO {
   static $pdo = null;
   if ($pdo) return $pdo;
@@ -130,5 +153,6 @@ function db(): PDO {
   $pdo->exec('PRAGMA foreign_keys = ON;');
   ensureDatabaseInitialized($pdo);
   ensureStandardFields($pdo);
+  ensureStandardCrops($pdo);
   return $pdo;
 }
