@@ -54,7 +54,7 @@ JOIN crops c ON c.id=d.crop_id
 JOIN tasks t ON t.id=d.task_id
 {$where}
 ORDER BY d.date DESC, d.id DESC
-LIMIT 200
+LIMIT 1000
 ";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -192,7 +192,7 @@ $csv = "diary_export.php"
       <div style="font-size:18px;font-weight:900"><?= number_format(count($rows)) ?> 件</div>
     </div>
     <div class="muted">
-      ※最新200件まで
+      ※最新1000件まで
     </div>
   </div>
 
