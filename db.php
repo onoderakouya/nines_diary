@@ -137,6 +137,28 @@ function ensureStandardCrops(PDO $pdo): void {
   }
 }
 
+function findOrCreateCropId(PDO $pdo, string $cropName): int {
+  $name = trim($cropName);
+  if ($name === '') {
+    return 0;
+  }
+
+  $find = $pdo->prepare('SELECT id FROM crops WHERE name = :name LIMIT 1');
+  $find->execute([':name' => $name]);
+  $id = (int)($find->fetchColumn() ?: 0);
+  if ($id > 0) {
+    return $id;
+  }
+
+  $insert = $pdo->prepare('INSERT INTO crops (name, created_at) VALUES (:name, :created_at)');
+  $insert->execute([
+    ':name' => $name,
+    ':created_at' => date('c'),
+  ]);
+
+  return (int)$pdo->lastInsertId();
+}
+
 function db(): PDO {
   static $pdo = null;
   if ($pdo) return $pdo;

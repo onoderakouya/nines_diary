@@ -15,6 +15,9 @@ $tagOptions = [
 
 $err = '';
 $dateValue = date('Y-m-d');
+$crop_id = 0;
+$cropSelectionValue = '';
+$cropOtherValue = '';
 
 function saveUploadedImage(string $key, string $uploadDir, string &$err): ?string {
   if (!isset($_FILES[$key]) || $_FILES[$key]['error'] === UPLOAD_ERR_NO_FILE) return null;
@@ -40,7 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date     = $_POST['date'] ?? '';
   $dateValue = $date !== '' ? $date : $dateValue;
   $field_id = (int)($_POST['field_id'] ?? 0);
-  $crop_id  = (int)($_POST['crop_id'] ?? 0);
+  $cropSelectionValue = trim((string)($_POST['crop_id'] ?? ''));
+  $cropOtherValue = trim((string)($_POST['crop_other'] ?? ''));
+  $crop_id = $cropSelectionValue === 'other'
+    ? findOrCreateCropId($pdo, $cropOtherValue)
+    : (int)$cropSelectionValue;
 
   $tag      = trim((string)($_POST['symptom_tag'] ?? ''));
   $symptom  = trim((string)($_POST['symptom_text'] ?? ''));
@@ -100,11 +107,19 @@ exit;
     label.textContent = weekday ? `（${weekday}）` : '';
   }
 
+  function toggleCropOther(){
+    const select = document.querySelector('select[name="crop_id"]');
+    const box = document.getElementById('crop_other_box');
+    if (!select || !box) return;
+    box.style.display = select.value === 'other' ? 'block' : 'none';
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.getElementById('date');
     if (dateInput && !dateInput.value) {
       dateInput.value = new Date().toISOString().slice(0, 10);
     }
+    toggleCropOther();
     updateWeekday();
     dateInput?.addEventListener('input', updateWeekday);
     dateInput?.addEventListener('change', updateWeekday);
@@ -164,12 +179,16 @@ exit;
 
         <div class="form-row">
           <label class="form-label">品目<span class="req">*</span></label>
-          <select class="form-input form-control" name="crop_id" required>
+          <select class="form-input form-control" name="crop_id" required onchange="toggleCropOther()">
             <option value="">選択</option>
             <?php foreach ($crops as $c): ?>
-              <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
+              <option value="<?= (int)$c['id'] ?>" <?= ($cropSelectionValue !== 'other' && (int)$c['id'] === $crop_id) ? 'selected' : '' ?>><?= e($c['name']) ?></option>
             <?php endforeach; ?>
+            <option value="other" <?= $cropSelectionValue === 'other' ? 'selected' : '' ?>>その他（自由入力）</option>
           </select>
+          <div id="crop_other_box" style="display:none;margin-top:10px">
+            <input class="form-input form-control" name="crop_other" value="<?= e($cropOtherValue) ?>" placeholder="品目名を入力">
+          </div>
         </div>
       </div>
     </div>
