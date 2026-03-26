@@ -29,6 +29,8 @@ $date = (string)$row['date'];
 $field_id = (int)$row['field_id'];
 $plot = (string)($row['plot'] ?? '');
 $crop_id = (int)$row['crop_id'];
+$cropSelectionValue = (string)$crop_id;
+$cropOtherValue = '';
 $quantity = (string)$row['quantity'];
 $unit = (string)$row['unit'];
 $note = (string)($row['note'] ?? '');
@@ -43,7 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $date = (string)($_POST['date'] ?? '');
   $field_id = (int)($_POST['field_id'] ?? 0);
   $plot = trim((string)($_POST['plot'] ?? ''));
-  $crop_id = (int)($_POST['crop_id'] ?? 0);
+  $cropSelectionValue = trim((string)($_POST['crop_id'] ?? ''));
+  $cropOtherValue = trim((string)($_POST['crop_other'] ?? ''));
+  $crop_id = $cropSelectionValue === 'other'
+    ? findOrCreateCropId($pdo, $cropOtherValue)
+    : (int)$cropSelectionValue;
   $quantity = (string)($_POST['quantity'] ?? '0');
   $unit = (string)($_POST['unit'] ?? '');
   $note = trim((string)($_POST['note'] ?? ''));
@@ -80,6 +86,15 @@ $csrf = csrfToken();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="app.css">
   <script defer src="app.js"></script>
+  <script>
+    function toggleCropOther(){
+      const sel = document.querySelector('select[name="crop_id"]');
+      const box = document.getElementById('crop_other_box');
+      if (!sel || !box) return;
+      box.style.display = sel.value === 'other' ? 'block' : 'none';
+    }
+    window.addEventListener('DOMContentLoaded', toggleCropOther);
+  </script>
 </head>
 <body>
 <?php renderGlobalTopbar($u); ?>
@@ -126,12 +141,16 @@ $csrf = csrfToken();
         </div>
         <div class="form-row">
           <label class="form-label">品目<span class="req">*</span></label>
-          <select class="form-input form-control" name="crop_id" required>
+          <select class="form-input form-control" name="crop_id" required onchange="toggleCropOther()">
             <option value="">選択</option>
             <?php foreach ($crops as $c): ?>
-              <option value="<?= (int)$c['id'] ?>" <?= $crop_id === (int)$c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option>
+              <option value="<?= (int)$c['id'] ?>" <?= ($cropSelectionValue !== 'other' && $crop_id === (int)$c['id']) ? 'selected' : '' ?>><?= e($c['name']) ?></option>
             <?php endforeach; ?>
+            <option value="other" <?= $cropSelectionValue === 'other' ? 'selected' : '' ?>>その他（自由入力）</option>
           </select>
+          <div id="crop_other_box" style="display:none;margin-top:10px">
+            <input class="form-input form-control" name="crop_other" value="<?=e($cropOtherValue)?>" placeholder="品目名を入力">
+          </div>
         </div>
       </div>
     </div>
