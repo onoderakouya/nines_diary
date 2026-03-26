@@ -203,6 +203,22 @@ $csv = "diary_export.php"
   <?php endif; ?>
 
   <?php foreach ($rows as $r): ?>
+    <?php
+      $workLabels = [];
+      $workContentRaw = trim((string)($r['work_content'] ?? ''));
+      if ($workContentRaw !== '') {
+        $parts = preg_split('/[、,]+/u', $workContentRaw) ?: [];
+        foreach ($parts as $part) {
+          $label = trim((string)$part);
+          if ($label !== '') {
+            $workLabels[] = $label;
+          }
+        }
+      }
+      if (!$workLabels && !empty($r['task_name'])) {
+        $workLabels[] = (string)$r['task_name'];
+      }
+    ?>
     <div class="card">
       <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
         <div>
@@ -218,7 +234,13 @@ $csv = "diary_export.php"
         </div>
 
         <div style="text-align:right">
-          <div class="badge"><?=e((string)$r['task_name'])?></div>
+          <?php if ($workLabels): ?>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+              <?php foreach ($workLabels as $label): ?>
+                <div class="badge"><?= e($label) ?></div>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
           <div style="margin-top:6px;font-size:18px;font-weight:900">
             <?= (int)$r['minutes'] ?> 分
           </div>
