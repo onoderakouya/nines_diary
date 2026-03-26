@@ -10,9 +10,9 @@ $flashError = getFlash('error');
 $isAdmin = isAdmin($u);
 
 $selectedUserId = (int)($_GET['user_id'] ?? 0);
-$trainees = [];
+$selectableUsers = [];
 if ($isAdmin) {
-  $trainees = $pdo->query("SELECT id, name FROM users WHERE role = 'trainee' ORDER BY name")->fetchAll();
+  $selectableUsers = $pdo->query("SELECT id, name, role FROM users WHERE role IN ('trainee', 'admin') ORDER BY CASE role WHEN 'admin' THEN 0 ELSE 1 END, name")->fetchAll();
 }
 
 $where = " WHERE 1=1 ";
@@ -123,10 +123,10 @@ $csv = "diary_export.php"
           <div>
             <label>ユーザー</label>
             <select name="user_id">
-              <option value="0">すべての研修生</option>
-              <?php foreach ($trainees as $tr): ?>
-                <option value="<?= (int)$tr['id'] ?>" <?= $selectedUserId===(int)$tr['id']?'selected':'' ?>>
-                  <?= e($tr['name']) ?>
+              <option value="0">すべてのユーザー</option>
+              <?php foreach ($selectableUsers as $su): ?>
+                <option value="<?= (int)$su['id'] ?>" <?= $selectedUserId===(int)$su['id']?'selected':'' ?>>
+                  <?= e($su['name']) ?><?= $su['role']==='admin' ? '（管理者）' : '' ?>
                 </option>
               <?php endforeach; ?>
             </select>
