@@ -6,12 +6,7 @@ require_once __DIR__ . '/ui.php';
 $u = requireLogin();
 $pdo = db();
 
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY id")->fetchAll();
-$fieldLabelOrder = ['1-1','1-2','1-3','1-4','1-5','1-6','1-7','1-8','1-9','1-10','2-1','2-2','2-3','2-4','2-5','2-6','2-7','2-8','2-9','2-10','2-11','3-1','3-2','3-3','3-4','3-5','3-6','3-7'];
-foreach ($fields as $idx => &$field) {
-  $field['display_label'] = $fieldLabelOrder[$idx] ?? (string)$field['label'];
-}
-unset($field);
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY CAST(substr(label,1,instr(label,'-')-1) AS INTEGER), CAST(substr(label,instr(label,'-')+1) AS INTEGER), id")->fetchAll();
 
 $crops = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 
@@ -159,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <select class="form-input form-control" name="field_id" required>
             <option value="">選択</option>
             <?php foreach ($fields as $f): ?>
-              <option value="<?= (int)$f['id'] ?>"><?= e((string)$f['display_label']) ?></option>
+              <option value="<?= (int)$f['id'] ?>"><?= e((string)$f['label']) ?></option>
             <?php endforeach; ?>
           </select>
         </div>

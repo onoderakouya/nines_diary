@@ -41,7 +41,7 @@ if ($crop)  { $where .= " AND d.crop_id = :crop ";   $params[':crop']  = $crop; 
 if ($task)  { $where .= " AND d.task_id = :task ";   $params[':task']  = $task; }
 if ($plot !== '') { $where .= " AND d.plot = :plot "; $params[':plot'] = $plot; } // 完全一致
 
-$fields = $pdo->query("SELECT id,label FROM fields ORDER BY id")->fetchAll();
+$fields = $pdo->query("SELECT id,label FROM fields ORDER BY CAST(substr(label,1,instr(label,'-')-1) AS INTEGER), CAST(substr(label,instr(label,'-')+1) AS INTEGER), id")->fetchAll();
 $crops  = $pdo->query("SELECT id,name FROM crops ORDER BY id")->fetchAll();
 $tasks  = $pdo->query("SELECT id,name FROM tasks ORDER BY id")->fetchAll();
 
