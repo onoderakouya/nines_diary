@@ -20,9 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   $targetId = (int)($_POST['user_id'] ?? 0);
+  $action = (string)($_POST['action'] ?? 'update_role');
   $newRole = (string)($_POST['role'] ?? '');
 
-  if ($targetId <= 0 || !in_array($newRole, $allowedRoles, true)) {
+  if ($targetId <= 0) {
     setFlash('error', '入力内容が不正です。');
     header('Location: admin_user_list.php');
     exit;
@@ -44,16 +45,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
   }
 
-  $currentRole = (string)$target['role'];
-  if ($currentRole !== $newRole) {
-    $up = $pdo->prepare('UPDATE users SET role = :role WHERE id = :id');
-    $up->execute([
-      ':role' => $newRole,
-      ':id' => $targetId,
-    ]);
-    setFlash('ok', 'ユーザー権限を更新しました。');
+  if ($action === 'delete') {
+    $del = $pdo->prepare('DELETE FROM users WHERE id = :id');
+    $del->execute([':id' => $targetId]);
+    setFlash('ok', 'ユーザーを削除しました。');
   } else {
-    setFlash('ok', '権限は変更されていません。');
+    if (!in_array($newRole, $allowedRoles, true)) {
+      setFlash('error', '入力内容が不正です。');
+      header('Location: admin_user_list.php');
+      exit;
+    }
+
+    $currentRole = (string)$target['role'];
+    if ($currentRole !== $newRole) {
+      $up = $pdo->prepare('UPDATE users SET role = :role WHERE id = :id');
+      $up->execute([
+        ':role' => $newRole,
+        ':id' => $targetId,
+      ]);
+      setFlash('ok', 'ユーザー権限を更新しました。');
+    } else {
+      setFlash('ok', '権限は変更されていません。');
+    }
   }
 
   header('Location: admin_user_list.php');
@@ -100,6 +113,23 @@ $errorMessage = getFlash('error');
       display:flex;
       gap:6px;
       align-items:center;
+    }
+    .admin-users-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .admin-users-delete-form{
+      margin:0;
+    }
+    .admin-users-delete-form button{
+      background:#fff2f2;
+      border:1px solid #d98282;
+      color:#8e2222;
+    }
+    .admin-users-delete-form button:hover{
+      background:#ffe4e4;
     }
     .admin-users-role-form select{
       min-width:86px;
@@ -177,16 +207,27 @@ $errorMessage = getFlash('error');
               <td><?= e(roleLabel((string)$r['role'])) ?></td>
               <td><?= e((string)$r['created_at']) ?></td>
               <td>
-                <form method="post" class="admin-users-role-form">
-                  <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                  <input type="hidden" name="user_id" value="<?= (int)$r['id'] ?>">
-                  <select name="role" <?= ((int)$admin['id'] === (int)$r['id']) ? 'disabled' : '' ?>>
-                    <option value="trainee" <?= ((string)$r['role'] === 'trainee') ? 'selected' : '' ?>>研修生</option>
-                    <option value="admin" <?= ((string)$r['role'] === 'admin') ? 'selected' : '' ?>>管理者</option>
-                  </select>
-                  <button type="submit" <?= ((int)$admin['id'] === (int)$r['id']) ? 'disabled' : '' ?>>権限変更</button>
-                </form>
-                <a href="admin_reset_password.php?id=<?= (int)$r['id'] ?>">パス再発行</a>
+                <div class="admin-users-actions">
+                  <form method="post" class="admin-users-role-form">
+                    <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+                    <input type="hidden" name="action" value="update_role">
+                    <input type="hidden" name="user_id" value="<?= (int)$r['id'] ?>">
+                    <select name="role" <?= ((int)$admin['id'] === (int)$r['id']) ? 'disabled' : '' ?>>
+                      <option value="trainee" <?= ((string)$r['role'] === 'trainee') ? 'selected' : '' ?>>研修生</option>
+                      <option value="admin" <?= ((string)$r['role'] === 'admin') ? 'selected' : '' ?>>管理者</option>
+                    </select>
+                    <button type="submit" <?= ((int)$admin['id'] === (int)$r['id']) ? 'disabled' : '' ?>>権限変更</button>
+                  </form>
+                  <a href="admin_reset_password.php?id=<?= (int)$r['id'] ?>">パス再発行</a>
+                  <?php if ((int)$admin['id'] !== (int)$r['id']): ?>
+                    <form method="post" class="admin-users-delete-form" onsubmit="return confirm('このユーザーを削除します。よろしいですか？');">
+                      <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+                      <input type="hidden" name="action" value="delete">
+                      <input type="hidden" name="user_id" value="<?= (int)$r['id'] ?>">
+                      <button type="submit">削除</button>
+                    </form>
+                  <?php endif; ?>
+                </div>
               </td>
             </tr>
           <?php endforeach; ?>
