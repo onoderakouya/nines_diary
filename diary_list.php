@@ -77,6 +77,12 @@ $csv = "diary_export.php"
   <title>日誌実績</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="app.css">
+  <style>
+    .filter-submit:hover,
+    .delete-submit:hover {
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 <?php renderGlobalTopbar($u); ?>
@@ -176,7 +182,7 @@ $csv = "diary_export.php"
       </div>
 
       <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn primary" type="submit">絞り込み</button>
+        <button class="btn primary filter-submit" type="submit">絞り込み</button>
         <a class="btn" href="diary_list.php">リセット</a>
       </div>
 
@@ -278,7 +284,7 @@ $csv = "diary_export.php"
           <input type="hidden" name="type" value="diary">
           <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
           <input type="hidden" name="redirect" value="diary_list.php">
-          <button class="btn btn-delete" type="submit">削除</button>
+          <button class="btn btn-delete delete-submit" type="submit">削除</button>
         </form>
       </div>
     </div>
